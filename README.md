@@ -1,50 +1,73 @@
-# Welcome to your Expo app 👋
+# Flighty App Clone (React Native)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This project is a React Native application aiming to clone the core user interface and features of the Flighty app. It utilizes Expo, NativeWind for styling, and TypeScript.
 
-## Get started
+## Project Overview
 
-1. Install dependencies
+The goal is to replicate the flight tracking experience provided by Flighty, focusing on a clean, intuitive UI and real-time flight status updates (though currently using dummy data).
 
-   ```bash
-   npm install
-   ```
+## Current Status (As of May 27, 2025)
 
-2. Start the app
+- **Core UI Structure:**
+  - Main flight list screen established using Expo Router for navigation.
+  - Custom header component (`ListHeader`) with title, placeholder icons, and a search bar.
+  - Flight list display (`FlightList` & `FlightItem`) showing individual flight cards.
+- **Flight Item Cards:**
+  - Detailed layout with two columns: time-to-event on the left, and flight details on the right.
+  - Flight details include airline (with placeholder icon), flight number, origin/destination cities, scheduled times with airport codes (using `airplane-takeoff` and `airplane-landing` icons), and flight status.
+  - Conditional styling for flight status text (e.g., "Delayed" in red, "Landed" in blue, "On Time" in green).
+  - Conditional coloring for takeoff/landing icons based on flight status (e.g., red for delayed flights).
+- **Styling:**
+  - NativeWind is used for all styling, providing a Tailwind CSS-like experience.
+  - Basic card styling (background, padding, shadow) and text styling applied.
+- **Data Handling:**
+  - Dummy flight data (`data/flights.ts`) is used to populate the list.
+  - Includes a `Flight` interface defining the data structure.
+  - Utility function (`utils/timeUtils.ts`) for time formatting.
+- **Dark Mode:**
+  - Implemented a theme context (`context/ThemeContext.tsx`) using NativeWind's `useColorScheme` and React Native's `Appearance` module.
+  - Dark mode can be toggled via a Switch in the header.
+  - Styles for dark mode applied to the main screen, header, and flight item cards.
+- **Dependency Management & Troubleshooting:**
+  - Resolved significant Metro bundler and dependency version conflicts using `npm install --legacy-peer-deps` and `npx expo-doctor`.
+  - Addressed various linter and rendering issues, including problems with NativeWind class application and component duplication.
 
-   ```bash
-   npx expo start
-   ```
+## Setup and Running the Project
 
-In the output, you'll find options to open the app in a
+1.  **Install Dependencies:**
+    ```bash
+    npm install
+    ```
+    (If you encounter peer dependency issues, you might need to use `npm install --legacy-peer-deps`)
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+2.  **Start the Development Server:**
+    ```bash
+    npx expo start
+    ```
+    You can then open the app in an iOS simulator/Android emulator or on a physical device using the Expo Go app.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Next Steps & Potential Future Tasks
 
-## Get a fresh project
+- **Refine Icons & Styling:**
+  - Replace placeholder airline logo characters with actual airline logos (e.g., SVG or dynamic image loading).
+  - Further refine UI details and spacing to more closely match the Flighty app aesthetic.
+  - Polish dark mode colors and ensure consistency across all elements.
+- **Search/Filter Functionality:**
+  - Implement the search bar functionality in `ListHeader` to filter the flight list.
+- **Flight Details Screen:**
+  - Create a new screen to show more detailed information when a flight card is tapped.
+  - Implement navigation to this details screen.
+- **Real Data Integration:**
+  - Replace dummy data with a real-time flight status API.
+- **Advanced Features (Long Term):**
+  - Live flight tracking on a map.
+  - Push notifications for flight status changes.
+  - User accounts and saved flights.
+  - Calendar integration.
+- **Code Cleanup & Optimization:**
+  - Refactor components as needed.
+  - Optimize performance, especially for long lists.
 
-When you're ready, run:
+---
 
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+*This README provides a snapshot of the project's progress. For the most up-to-date information, please refer to the commit history and the code itself.*
