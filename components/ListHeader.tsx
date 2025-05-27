@@ -1,29 +1,41 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
-import { Text, TextInput, View } from 'react-native';
+import { Switch, Text, TextInput, View } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 
 const ListHeader: React.FC = () => {
+  const { theme, toggleTheme } = useTheme();
+
   return (
-    <View className="px-4 pt-2 pb-3 bg-gray-100">
-      {/* My Flights Title Row */}
-      <View className="flex-row items-center justify-between mb-3">
+    <View className="pt-12 px-4 pb-4 bg-gray-100 dark:bg-gray-900">
+      {/* Top Row: Title and Icons */}
+      <View className="flex-row justify-between items-center mb-4">
         <View className="flex-row items-center">
-          <Text className="text-3xl font-bold text-black">My Flights</Text>
-          <Ionicons name="chevron-down" size={24} color="black" style={{ marginLeft: 4, marginTop: 2 }} />
+          <Text className="text-3xl font-bold text-gray-800 dark:text-white">My Flights</Text>
+          <Ionicons name="chevron-down" size={20} color={theme === 'dark' ? "white" : "#4B5563"} style={{ marginLeft: 5, marginTop: 5 }} />
         </View>
         <View className="flex-row items-center space-x-3">
-          <Ionicons name="share-social-outline" size={26} color="black" />
-          <Ionicons name="person-circle-outline" size={30} color="black" />
+          {/* Theme Toggle Switch */}
+          <Switch
+            trackColor={{ false: "#767577", true: "#81b0ff" }}
+            thumbColor={theme === 'dark' ? "#f5dd4b" : "#f4f3f4"}
+            ios_backgroundColor="#3e3e3e"
+            onValueChange={toggleTheme}
+            value={theme === "dark"}
+            style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
+          />
+          <Ionicons name="share-social-outline" size={24} color={theme === 'dark' ? "white" : "#4B5563"} />
+          <MaterialCommunityIcons name="account-circle-outline" size={28} color={theme === 'dark' ? "white" : "#4B5563"} />
         </View>
       </View>
 
       {/* Search Bar */}
-      <View className="flex-row items-center bg-gray-200 p-3 rounded-lg">
-        <MaterialCommunityIcons name="magnify" size={22} color="#6B7280" style={{ marginRight: 8 }} />
+      <View className="flex-row items-center bg-gray-200 dark:bg-gray-700 rounded-lg p-2">
+        <Ionicons name="search" size={20} color={theme === 'dark' ? "white" : "#4B5563"} style={{ marginRight: 8 }} />
         <TextInput
           placeholder="Search to add flights"
-          placeholderTextColor="#9CA3AF"
-          className="flex-1 text-base text-black"
+          placeholderTextColor={theme === 'dark' ? "#A0A0A0" : "#6B7280"}
+          className="flex-1 text-base text-gray-800 dark:text-white"
         />
       </View>
     </View>
