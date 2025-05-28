@@ -2,6 +2,20 @@
 
 This project is a React Native application aiming to clone the core user interface and features of the Flighty app. It utilizes Expo, NativeWind for styling, and TypeScript.
 
+## App Preview
+
+### Main Screen (Dark Mode)
+![Main Screen Dark](./screenshots/dark-main.png)
+
+### Search Filtering (Light Mode)
+![Search Filtering Light](./screenshots/light-search.png)
+
+### Main Screen (Light Mode)
+![Main Screen Light](./screenshots/light-main.png)
+
+### Map Focus (Dark Mode)
+![Map Focus Dark](./screenshots/dark-map.png)
+
 ## Project Overview
 
 The goal is to replicate the flight tracking experience provided by Flighty, focusing on a clean, intuitive UI and real-time flight status updates (though currently using dummy data).
