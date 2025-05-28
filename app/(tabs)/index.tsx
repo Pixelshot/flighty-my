@@ -8,12 +8,12 @@ import ListHeader from "../../components/ListHeader";
 import { useTheme } from "../../context/ThemeContext";
 
 const { height: screenHeight } = Dimensions.get('window');
-const panelHeight = screenHeight * 0.5; // 60% of screen height
+const panelHeight = screenHeight * 0.8; // Increased panel height
 const initialSnapPoint = 0; // Panel at the bottom
 // const middleSnapPoint = -screenHeight * 0.4; // Roughly half way up
-const topSnapPoint = -(panelHeight - 160); // Adjusted: Top of panel 100 units from screen top
+const topSnapPoint = -(panelHeight - 620); // Adjusted: Top of panel 100 units from screen top
 
-const lowerSnapPoint = panelHeight - 380; // Allow panel to be dragged down near the bottom of the screen
+const lowerSnapPoint = panelHeight - 360; // Allow panel to be dragged down near the bottom of the screen
 
 type GestureContext = {
   startY: number;
@@ -52,6 +52,7 @@ export default function FlightScreen() {
       transform: [
         { translateY: translateY.value }
       ],
+      height: panelHeight, // Keep fixed height
     };
   });
 
@@ -67,7 +68,7 @@ export default function FlightScreen() {
         <PanGestureHandler onGestureEvent={gestureHandler}>
           <Animated.View
             style={[
-              { position: 'absolute', bottom: 0, left: 0, right: 0, height: panelHeight, backgroundColor: theme === 'dark' ? 'black' : 'white', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 16, flex: 1, flexDirection: 'column' },
+              { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: theme === 'dark' ? 'black' : 'white', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 16, flex: 1, flexDirection: 'column' },
               panelAnimatedStyle
             ]}
           >
