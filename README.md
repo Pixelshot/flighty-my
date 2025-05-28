@@ -4,17 +4,24 @@ This project is a React Native application aiming to clone the core user interfa
 
 ## App Preview
 
-### Main Screen (Dark Mode)
-<img src="./screenshots/Main%20Screen%20(Dark%20Mode).png" alt="Main Screen Dark" width="220"/>
-
-### Search Filtering (Light Mode)
-<img src="./screenshots/Search%20Filtering%20(Light%20Mode).png" alt="Search Filtering Light" width="220"/>
-
-### Main Screen (Light Mode)
-<img src="./screenshots/Main%20Screen%20(Light%20Mode).png" alt="Main Screen Light" width="220"/>
-
-### Map Focus (Dark Mode)
-<img src="./screenshots/Map%20Focus%20(Dark%20Mode).png" alt="Map Focus Dark" width="220"/>
+<table>
+  <tr>
+    <td align="center"><b>Main Screen (Light Mode)</b><br>
+      <img src="./screenshots/Main%20Screen%20(Light%20Mode).png" alt="Main Screen Light" width="220"/>
+    </td>
+    <td align="center"><b>Search Filtering (Light Mode)</b><br>
+      <img src="./screenshots/Search%20Filtering%20(Light%20Mode).png" alt="Search Filtering Light" width="220"/>
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><b>Main Screen (Dark Mode)</b><br>
+      <img src="./screenshots/Main%20Screen%20(Dark%20Mode).png" alt="Main Screen Dark" width="220"/>
+    </td>
+    <td align="center"><b>Map Focus (Dark Mode)</b><br>
+      <img src="./screenshots/Map%20Focus%20(Dark%20Mode).png" alt="Map Focus Dark" width="220"/>
+    </td>
+  </tr>
+</table>
 
 ## Project Overview
 
