@@ -2,17 +2,17 @@ import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
 import { Dimensions, View } from "react-native";
 import { GestureHandlerRootView, PanGestureHandler, PanGestureHandlerGestureEvent } from 'react-native-gesture-handler';
+import MapView from 'react-native-maps';
 import Animated, { useAnimatedGestureHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import FlightList from "../../components/FlightList";
 import ListHeader from "../../components/ListHeader";
 import { useTheme } from "../../context/ThemeContext";
 
 const { height: screenHeight } = Dimensions.get('window');
-const panelHeight = screenHeight * 0.8; // Increased panel height
+const panelHeight = screenHeight * 0.8; // Increased panel height (user's preferred height)
 const initialSnapPoint = 0; // Panel at the bottom
 // const middleSnapPoint = -screenHeight * 0.4; // Roughly half way up
 const topSnapPoint = -(panelHeight - 620); // Adjusted: Top of panel 100 units from screen top
-
 const lowerSnapPoint = panelHeight - 360; // Allow panel to be dragged down near the bottom of the screen
 
 type GestureContext = {
@@ -24,7 +24,7 @@ export default function FlightScreen() {
   const [searchQuery, setSearchQuery] = useState("");
 
   // Shared value for the panel's vertical position
-  const translateY = useSharedValue(initialSnapPoint);
+  const translateY = useSharedValue(lowerSnapPoint);
 
   // Store the starting position when the gesture begins
   const context = useSharedValue<GestureContext>({ startY: 0 });
@@ -61,8 +61,16 @@ export default function FlightScreen() {
       <View className={`flex-1 ${theme === 'dark' ? 'bg-black' : 'bg-gray-50'}`}>
         <StatusBar style={theme === "dark" ? "light" : "dark"} />
 
-        {/* Placeholder for the map */}
-        <View className="flex-1 bg-blue-300" />
+        {/* Active Map as background */}
+        <MapView
+          style={{ flex: 1 }}
+          initialRegion={{
+            latitude: 4.2,
+            longitude: 102.0,
+            latitudeDelta: 5.5,
+            longitudeDelta: 5.5,
+          }}
+        />
 
         {/* Draggable Panel */}
         <PanGestureHandler onGestureEvent={gestureHandler}>
