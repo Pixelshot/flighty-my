@@ -10,6 +10,8 @@ The goal is to replicate the flight tracking experience provided by Flighty, foc
 
 - **Core UI Structure:**
   - Main flight list screen established using Expo Router for navigation.
+  - **Map background** on the main screen using `react-native-maps`, centered on Peninsular Malaysia by default.
+  - **Draggable panel** overlays the map, containing the flight list and header. The panel can be dragged up and down, with snap points and a default position.
   - Custom header component (`ListHeader`) with title, placeholder icons, and a search bar.
   - Flight list display (`FlightList` & `FlightItem`) showing individual flight cards.
 - **Flight Item Cards:**
@@ -28,6 +30,11 @@ The goal is to replicate the flight tracking experience provided by Flighty, foc
   - Implemented a theme context (`context/ThemeContext.tsx`) using NativeWind's `useColorScheme` and React Native's `Appearance` module.
   - Dark mode can be toggled via a Switch in the header.
   - Styles for dark mode applied to the main screen, header, and flight item cards.
+- **Search Functionality:**
+  - The search bar in the header now filters the flight list in real time.
+- **Draggable Panel:**
+  - The flight list is displayed inside a draggable panel that overlays the map, implemented using `react-native-reanimated` and `react-native-gesture-handler`.
+  - The panel starts at a default snap point and can be dragged up or down within set bounds.
 - **Dependency Management & Troubleshooting:**
   - Resolved significant Metro bundler and dependency version conflicts using `npm install --legacy-peer-deps` and `npx expo-doctor`.
   - Addressed various linter and rendering issues, including problems with NativeWind class application and component duplication.
@@ -37,6 +44,8 @@ The goal is to replicate the flight tracking experience provided by Flighty, foc
 1.  **Install Dependencies:**
     ```bash
     npm install
+    expo install react-native-maps
+    expo install react-native-reanimated react-native-gesture-handler
     ```
     (If you encounter peer dependency issues, you might need to use `npm install --legacy-peer-deps`)
 
@@ -46,14 +55,16 @@ The goal is to replicate the flight tracking experience provided by Flighty, foc
     ```
     You can then open the app in an iOS simulator/Android emulator or on a physical device using the Expo Go app.
 
+3.  **Map Configuration:**
+    - The map uses `react-native-maps` and is centered on Peninsular Malaysia by default.
+    - For production, you may need to set up API keys for Google Maps or Mapbox and configure permissions as per the [react-native-maps documentation](https://github.com/react-native-maps/react-native-maps).
+
 ## Next Steps & Potential Future Tasks
 
 - **Refine Icons & Styling:**
   - Replace placeholder airline logo characters with actual airline logos (e.g., SVG or dynamic image loading).
   - Further refine UI details and spacing to more closely match the Flighty app aesthetic.
   - Polish dark mode colors and ensure consistency across all elements.
-- **Search/Filter Functionality:**
-  - Implement the search bar functionality in `ListHeader` to filter the flight list.
 - **Flight Details Screen:**
   - Create a new screen to show more detailed information when a flight card is tapped.
   - Implement navigation to this details screen.
