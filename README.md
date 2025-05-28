@@ -5,16 +5,16 @@ This project is a React Native application aiming to clone the core user interfa
 ## App Preview
 
 ### Main Screen (Dark Mode)
-![Main Screen Dark](./screenshots/dark-main.png)
+![Main Screen Dark](./screenshots/Main%20Screen%20(Dark%20Mode).png)
 
 ### Search Filtering (Light Mode)
-![Search Filtering Light](./screenshots/light-search.png)
+![Search Filtering Light](./screenshots/Search%20Filtering%20(Light%20Mode).png)
 
 ### Main Screen (Light Mode)
-![Main Screen Light](./screenshots/light-main.png)
+![Main Screen Light](./screenshots/Main%20Screen%20(Light%20Mode).png)
 
 ### Map Focus (Dark Mode)
-![Map Focus Dark](./screenshots/dark-map.png)
+![Map Focus Dark](./screenshots/Map%20Focus%20(Dark%20Mode).png)
 
 ## Project Overview
 
