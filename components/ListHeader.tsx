@@ -3,7 +3,12 @@ import React from 'react';
 import { Switch, Text, TextInput, View } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 
-const ListHeader: React.FC = () => {
+type ListHeaderProps = {
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+};
+
+const ListHeader: React.FC<ListHeaderProps> = ({ searchQuery, setSearchQuery }) => {
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -33,9 +38,11 @@ const ListHeader: React.FC = () => {
       <View className="flex-row items-center bg-gray-200 dark:bg-gray-700 rounded-lg p-2">
         <Ionicons name="search" size={20} color={theme === 'dark' ? "white" : "#4B5563"} style={{ marginRight: 8 }} />
         <TextInput
-          placeholder="Search to add flights"
+          placeholder="Search for flights"
           placeholderTextColor={theme === 'dark' ? "#A0A0A0" : "#6B7280"}
           className="flex-1 text-base text-gray-800 dark:text-white"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
         />
       </View>
     </View>
