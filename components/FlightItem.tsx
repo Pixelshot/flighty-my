@@ -30,7 +30,7 @@ const FlightItem: React.FC<FlightItemProps> = ({ item }) => {
   }
 
   return (
-    <View className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-md mb-4 mx-4">
+    <View className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-md mb-4 mx-4 mt-4">
       <View className="flex-row">
         {/* Left Column: Time to Event */}
         <View className="w-1/4 items-center justify-center pr-2 border-r border-gray-200 dark:border-gray-700">

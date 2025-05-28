@@ -12,7 +12,7 @@ const ListHeader: React.FC<ListHeaderProps> = ({ searchQuery, setSearchQuery }) 
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <View className="pt-12 px-4 pb-4 bg-gray-100 dark:bg-gray-900">
+    <View className="pt-12 px-4 pb-4">
       {/* Top Row: Title and Icons */}
       <View className="flex-row justify-between items-center mb-4">
         <View className="flex-row items-center">
