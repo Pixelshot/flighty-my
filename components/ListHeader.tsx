@@ -24,7 +24,7 @@ const ListHeader: React.FC = () => {
             value={theme === "dark"}
             style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
           />
-          <Ionicons name="share-social-outline" size={24} color={theme === 'dark' ? "white" : "#4B5563"} />
+          {/* <Ionicons name="share-social-outline" size={24} color={theme === 'dark' ? "white" : "#4B5563"} /> */}
           <MaterialCommunityIcons name="account-circle-outline" size={28} color={theme === 'dark' ? "white" : "#4B5563"} />
         </View>
       </View>

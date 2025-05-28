@@ -1,3 +1,4 @@
+
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Text, View } from "react-native";
 import { useTheme } from "../context/ThemeContext";
@@ -49,7 +50,7 @@ const FlightItem: React.FC<FlightItemProps> = ({ item }) => {
           <View className="flex-row items-center justify-between">
             <View className="flex-row items-center">
               <Ionicons name="airplane" size={20} color={theme === 'dark' ? '#D1D5DB' : '#555'} />
-              <Text className="text-sm font-medium text-gray-800 dark:text-gray-200 ml-2">
+              <Text className="text-sm font-medium text-gray-800 dark:text-gray-200 ml-2 pr-2">
                 {item.airline} {item.flightNumber}
               </Text>
             </View>
@@ -59,12 +60,12 @@ const FlightItem: React.FC<FlightItemProps> = ({ item }) => {
           </View>
 
           {/* Section 2: City to City */}
-          <Text className="text-lg font-semibold text-gray-900 dark:text-white mt-1">
+          <Text className="text-lg font-semibold text-gray-900 dark:text-white mt-2">
             {item.origin.city} to {item.destination.city}
           </Text>
 
           {/* Section 3: Times and Airport Codes */}
-          <View className="flex-row items-center mt-1.5">
+          <View className="flex-row items-center mt-2">
             <MaterialCommunityIcons name="airplane-takeoff" size={16} color={iconColor} />
             <Text className="text-xs text-gray-700 dark:text-gray-300 ml-1">
               {item.origin.code} {formatTime(item.departureTime)}
@@ -74,6 +75,8 @@ const FlightItem: React.FC<FlightItemProps> = ({ item }) => {
             <Text className="text-xs text-gray-700 dark:text-gray-300 ml-1">
               {item.destination.code} {formatTime(item.arrivalTime)}
             </Text>
+            <View className="mx-10" />{/* Spacer */}
+           <Ionicons name="share-social-outline" size={24} color={theme === 'dark' ? "white" : "#4B5563"} />
           </View>
         </View>
       </View>
