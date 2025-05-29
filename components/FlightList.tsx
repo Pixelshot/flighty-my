@@ -7,9 +7,10 @@ type FlightListProps = {
   searchQuery: string;
   flights: Flight[];
   onPress?: (flight: Flight) => void;
+  onShare?: (flight: Flight) => void;
 };
 
-const FlightList: React.FC<FlightListProps> = ({ searchQuery, flights, onPress }) => {
+const FlightList: React.FC<FlightListProps> = ({ searchQuery, flights, onPress, onShare }) => {
   const filteredFlights = flights.filter(flight => {
     const q = searchQuery.toLowerCase();
     return (

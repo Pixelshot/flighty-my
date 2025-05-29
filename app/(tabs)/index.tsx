@@ -1,14 +1,14 @@
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Dimensions, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Dimensions, Share, Text, View } from "react-native";
 import { GestureHandlerRootView, PanGestureHandler, PanGestureHandlerGestureEvent } from 'react-native-gesture-handler';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import Animated, { useAnimatedGestureHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import FlightList from "../../components/FlightList";
 import ListHeader from "../../components/ListHeader";
 import { useTheme } from "../../context/ThemeContext";
-import { Flight } from "../../data/flights";
-import { fetchFlights } from "../../services/flightService";
+import { Flight, dummyFlights } from "../../data/flights";
+// import { fetchFlights } from "../../services/flightService"; // Comment out fetchFlights import
 
 const { height: screenHeight } = Dimensions.get('window');
 const panelHeight = screenHeight * 0.8; // Increased panel height (user's preferred height)
@@ -29,6 +29,8 @@ export default function FlightScreen() {
   const [error, setError] = useState<string | null>(null);
   const [selectedFlightCoords, setSelectedFlightCoords] = useState<{ origin?: { latitude: number, longitude: number }, destination?: { latitude: number, longitude: number } } | null>(null);
   const mapRef = useRef<MapView>(null); // Ref for map
+  const [isSharing, setIsSharing] = useState(false);
+  const shareTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Shared value for the panel's vertical position
   const translateY = useSharedValue(lowerSnapPoint);
@@ -37,20 +39,14 @@ export default function FlightScreen() {
   const context = useSharedValue<GestureContext>({ startY: 0 });
 
   useEffect(() => {
-    const loadFlights = async () => {
-      try {
-        setLoading(true);
-        const data = await fetchFlights();
-        setFlights(data);
-        setError(null);
-      } catch (err) {
-        setError('Failed to load flights. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadFlights();
+    // Use dummy data instead of fetching from API
+    setLoading(true);
+    // Simulate a small loading delay if needed for visual testing
+    // const loadTimeout = setTimeout(() => {
+      setFlights(dummyFlights);
+      setLoading(false);
+    // }, 1000); // Adjust delay as needed
+    // return () => clearTimeout(loadTimeout);
   }, []);
 
   // Function to handle flight item press
@@ -69,6 +65,54 @@ export default function FlightScreen() {
     } else {
       setSelectedFlightCoords(null);
       console.warn('Coordinates not available for this flight.');
+    }
+  };
+
+  // Function to handle share button press
+  const handleShare = async (flight: Flight) => {
+    console.log('handleShare called with flight:', flight);
+    
+    // Prevent multiple rapid presses
+    if (isSharing) {
+      console.log('Already sharing, returning');
+      return;
+    }
+    
+    // Clear any existing timeout
+    if (shareTimeoutRef.current) {
+      clearTimeout(shareTimeoutRef.current);
+    }
+
+    try {
+      setIsSharing(true);
+      console.log('Attempting to share...');
+      
+      const shareOptions = {
+        message: `✈️ Flight Details\n\n` +
+          `Airline: ${flight.airline}\n` +
+          `Flight: ${flight.flightNumber}\n` +
+          `Route: ${flight.origin.city} (${flight.origin.code}) → ${flight.destination.city} (${flight.destination.code})\n` +
+          `Status: ${flight.status}\n` +
+          `Departure: ${flight.departureTime}\n` +
+          `Arrival: ${flight.arrivalTime}`,
+        title: `${flight.airline} ${flight.flightNumber}`,
+      };
+      
+      console.log('Share options:', shareOptions);
+      const result = await Share.share(shareOptions);
+      console.log('Share result:', result);
+
+      if (result.action === Share.sharedAction) {
+        Alert.alert('Success', 'Flight details shared successfully!', [{ text: 'OK' }]);
+      }
+    } catch (error: any) {
+      console.error('Error in handleShare:', error);
+      Alert.alert('Error', 'Failed to share flight details. Please try again.', [{ text: 'OK' }]);
+    } finally {
+      // Add a small delay before allowing another share
+      shareTimeoutRef.current = setTimeout(() => {
+        setIsSharing(false);
+      }, 1000);
     }
   };
 
@@ -155,7 +199,7 @@ export default function FlightScreen() {
                   <Text className={`text-center ${theme === 'dark' ? 'text-white' : 'text-black'}`}>{error}</Text>
                 </View>
               ) : (
-                <FlightList searchQuery={searchQuery} flights={flights} onPress={handleFlightPress} />
+                <FlightList searchQuery={searchQuery} flights={flights} onPress={handleFlightPress} onShare={handleShare} />
               )}
             </View>
           </Animated.View>

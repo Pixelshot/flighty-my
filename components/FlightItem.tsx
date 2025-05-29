@@ -7,6 +7,7 @@ import { formatTime } from "../utils/timeUtils";
 interface FlightItemProps {
   item: Flight;
   onPress?: (flight: Flight) => void;
+  onShare?: (flight: Flight) => void;
 }
 
 const airlineLogoMap: { [key: string]: any } = {
@@ -29,7 +30,7 @@ function getAirlineLogo(airlineName: string) {
   return null; // or a default logo: require('../assets/airlines/default.png')
 }
 
-const FlightItem: React.FC<FlightItemProps> = ({ item, onPress }) => {
+const FlightItem: React.FC<FlightItemProps> = ({ item, onPress, onShare }) => {
   const statusColors: { [key: string]: string } = {
     "On Time": "text-green-600",
     "Delayed": "text-red-600",
@@ -105,7 +106,17 @@ const FlightItem: React.FC<FlightItemProps> = ({ item, onPress }) => {
                 {item.destination.code} {formatTime(item.arrivalTime)}
               </Text>
               <View className="mx-10" />{/* Spacer */}
-             <Ionicons name="share-social-outline" size={24} color={theme === 'dark' ? "white" : "#4B5563"} />
+              {/* Share Button */}
+              <TouchableOpacity 
+                onPress={(e) => {
+                  e.stopPropagation();
+                  console.log('Share button pressed for flight:', item.id);
+                  onShare?.(item);
+                }}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons name="share-social-outline" size={24} color={theme === 'dark' ? "white" : "#4B5563"} />
+              </TouchableOpacity>
             </View>
           </View>
         </View>
