@@ -43,7 +43,6 @@ export default function FlightScreen() {
         setError(null);
       } catch (err) {
         setError('Failed to load flights. Please try again later.');
-        console.error('Error loading flights:', err);
       } finally {
         setLoading(false);
       }
@@ -105,8 +104,11 @@ export default function FlightScreen() {
             <ListHeader searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
             <View style={{ flex: 1 }}>
               {loading ? (
-                <View className="flex-1 justify-center items-center">
-                  <ActivityIndicator size="large" color={theme === 'dark' ? 'white' : 'black'} />
+                <View className="items-center mt-4 mx-4 mb-4">
+                  <View className="flex-row items-center bg-white dark:bg-gray-800 p-3 rounded-lg shadow-md">
+                    <ActivityIndicator size="large" color={theme === 'dark' ? 'white' : 'black'} />
+                    <Text className={`ml-2 text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-black'}`}>Please stand by...</Text>
+                  </View>
                 </View>
               ) : error ? (
                 <View className="flex-1 justify-center items-center p-4">
