@@ -1,7 +1,7 @@
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Dimensions, Share, Text, TouchableOpacity, View } from "react-native";
-import { GestureHandlerRootView, PanGestureHandler, PanGestureHandlerGestureEvent } from 'react-native-gesture-handler';
+import { ActivityIndicator, Alert, Dimensions, Share, Text, View } from "react-native";
+import { GestureHandlerRootView, PanGestureHandler, PanGestureHandlerGestureEvent, State, TapGestureHandler } from 'react-native-gesture-handler';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import Animated, { useAnimatedGestureHandler, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import FlightList from "../../components/FlightList";
@@ -11,12 +11,13 @@ import { Flight, dummyFlights } from "../../data/flights";
 // import { fetchFlights } from "../../services/flightService"; // Comment out fetchFlights import
 
 const { height: screenHeight } = Dimensions.get('window');
-const panelHeight = screenHeight * 0.95; // Increased panel height
-const initialSnapPoint = 0; // Panel at the bottom (not used for initial position now)
-// const middleSnapPoint = -screenHeight * 0.4; // Roughly half way up
-const topSnapPoint = panelHeight - 760; // Top of panel 100 units from screen top
-const lowerSnapPoint = (panelHeight - 100); // Allow panel to be dragged down near the bottom of the screen
-const defaultSnapPoint = panelHeight - 360; // The desired default/initial position
+const panelHeight = screenHeight * 0.95; // Increased panel height (used for calculation, not fixed height of view)
+
+// Snap points represent distance from the TOP of the screen
+const topSnapPoint = panelHeight - 760; // Top of panel 760 units from panel bottom (which is at screen top initially)
+const defaultSnapPoint = screenHeight - (panelHeight - 360); // The desired default/initial position from top
+const lowerSnapPoint = screenHeight - 100; // Panel bottom 100 units from screen bottom (panel top at screenHeight - 100 - panelHeight)
+const maxTranslateY = lowerSnapPoint; // Maximum translateY to keep panel bottom 100 units from screen bottom
 
 type GestureContext = {
   startY: number;
@@ -33,10 +34,10 @@ export default function FlightScreen() {
   const [isSharing, setIsSharing] = useState(false);
   const shareTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Shared value for the panel's vertical position
+  // Shared value for the panel's vertical position (distance from top)
   const translateY = useSharedValue(defaultSnapPoint);
 
-  // State to manage panel snap position
+  // State to manage panel snap position (for toggling)
   const [panelState, setPanelState] = useState('default'); // 'default', 'lower', 'top'
 
   // Store the starting position when the gesture begins
@@ -120,45 +121,46 @@ export default function FlightScreen() {
     }
   };
 
-  // Function to handle header press for toggling
-  const handleHeaderPress = () => {
-    let nextState: 'default' | 'lower' | 'top';
-    let targetTranslateY;
+  // Handle double tap on header
+  const handleDoubleTap = ({ nativeEvent }: { nativeEvent: { state: State } }) => {
+    if (nativeEvent.state === State.ACTIVE) {
+      let nextState: 'default' | 'lower' | 'top';
+      let targetTranslateY;
 
-    switch (panelState) {
-      case 'default':
-        nextState = 'lower';
-        targetTranslateY = lowerSnapPoint;
-        break;
-      case 'lower':
-        nextState = 'top';
-        targetTranslateY = topSnapPoint;
-        break;
-      case 'top':
-      default:
-        nextState = 'default';
-        targetTranslateY = defaultSnapPoint;
-        break;
+      switch (panelState) {
+        case 'default':
+          nextState = 'lower';
+          targetTranslateY = lowerSnapPoint;
+          break;
+        case 'lower':
+          nextState = 'top';
+          targetTranslateY = topSnapPoint;
+          break;
+        case 'top':
+        default:
+          nextState = 'default';
+          targetTranslateY = defaultSnapPoint;
+          break;
+      }
+
+      setPanelState(nextState);
+      translateY.value = withSpring(targetTranslateY);
     }
-
-    setPanelState(nextState);
-    translateY.value = withSpring(targetTranslateY);
   };
 
-  // Animated gesture handler
+  // Animated gesture handler for dragging
   const gestureHandler = useAnimatedGestureHandler<PanGestureHandlerGestureEvent, GestureContext>({
     onStart: (event, ctx) => {
       ctx.startY = translateY.value;
     },
     onActive: (event, ctx) => {
-      // Limit dragging within bounds
+      // Limit dragging within bounds (distance from top)
       const newTranslateY = ctx.startY + event.translationY;
-      translateY.value = Math.max(Math.min(newTranslateY, lowerSnapPoint), topSnapPoint); // Use lowerSnapPoint here
+      translateY.value = Math.max(topSnapPoint, Math.min(newTranslateY, maxTranslateY)); // Limit between topSnapPoint and maxTranslateY
     },
     onEnd: (event, ctx) => {
-      // You can add snapping logic here later if needed
+      // Optional: Add snapping logic here based on the final position after drag ends
       // For now, it just stops where the drag ends.
-      // Optional: Set panelState based on final position after drag ends
     },
   });
 
@@ -168,7 +170,8 @@ export default function FlightScreen() {
       transform: [
         { translateY: translateY.value }
       ],
-      height: panelHeight, // Keep fixed height
+      // Height will be determined by flex: 1 and translateY
+      // We need to set top: 0 in the base style and then translateY moves it down
     };
   });
 
@@ -211,14 +214,19 @@ export default function FlightScreen() {
         <PanGestureHandler onGestureEvent={gestureHandler}>
           <Animated.View
             style={[
-              { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: theme === 'dark' ? 'black' : 'white', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 16, flex: 1, flexDirection: 'column' },
+              { position: 'absolute', top: 0, left: 0, right: 0, backgroundColor: theme === 'dark' ? 'black' : 'white', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 16, flex: 1, flexDirection: 'column' },
               panelAnimatedStyle
             ]}
           >
-            {/* Tappable Header */}
-            <TouchableOpacity onPress={handleHeaderPress} activeOpacity={0.8}>
-              <ListHeader searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
-            </TouchableOpacity>
+            {/* Tappable Header (Double Tap) */}
+            <TapGestureHandler
+              numberOfTaps={2}
+              onHandlerStateChange={handleDoubleTap}
+            >
+              <View>
+                <ListHeader searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+              </View>
+            </TapGestureHandler>
             <View style={{ flex: 1 }}>
               {loading ? (
                 <View className="items-center mt-4 mx-4 mb-4">
