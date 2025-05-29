@@ -39,7 +39,7 @@ export default function FlightScreen() {
   const translateY = useSharedValue(defaultSnapPoint);
 
   // State to manage panel snap position (for toggling)
-  const [panelState, setPanelState] = useState('default'); // 'default', 'lower', 'top'
+  const [panelState, setPanelState] = useState<'default' | 'lower' | 'top'>('default'); // 'default', 'lower', 'top'
 
   // Store the starting position when the gesture begins
   const context = useSharedValue<GestureContext>({ startY: 0 });
@@ -242,7 +242,7 @@ export default function FlightScreen() {
               onHandlerStateChange={handleDoubleTap}
             >
               <View>
-                <ListHeader searchQuery={searchQuery} setSearchQuery={setSearchQuery} onLayout={handleHeaderLayout} />
+                <ListHeader searchQuery={searchQuery} setSearchQuery={setSearchQuery} onLayout={handleHeaderLayout} currentPanelState={panelState} />
               </View>
             </TapGestureHandler>
 
