@@ -22,9 +22,13 @@ const TabLayout = () => {
           ios: {
             // Use a transparent background on iOS to show the blur effect
             position: 'absolute',
+            display: 'none',
           },
-          default: {},
+          default: {
+            display: 'none',
+          },
         }),
+        // tabBarVisible: false, // Explicitly hide the tab bar
       }}>
       <Tabs.Screen
         name="index"
