@@ -11,11 +11,11 @@ import { Flight, dummyFlights } from "../../data/flights";
 // import { fetchFlights } from "../../services/flightService"; // Comment out fetchFlights import
 
 const { height: screenHeight } = Dimensions.get('window');
-const panelHeight = screenHeight * 0.8; // Increased panel height (user's preferred height)
-const initialSnapPoint = 0; // Panel at the bottom
+const panelHeight = screenHeight * 0.95; // Increased panel height
+const initialSnapPoint = 0; // Panel at the bottom (not used for initial position now)
 // const middleSnapPoint = -screenHeight * 0.4; // Roughly half way up
-const topSnapPoint = -(panelHeight - 620); // Adjusted: Top of panel 100 units from screen top
-const lowerSnapPoint = panelHeight - 360; // Allow panel to be dragged down near the bottom of the screen
+const topSnapPoint = panelHeight - 760; // Top of panel 100 units from screen top
+const lowerSnapPoint = (panelHeight - 100); // Allow panel to be dragged down near the bottom of the screen
 
 type GestureContext = {
   startY: number;
@@ -33,7 +33,7 @@ export default function FlightScreen() {
   const shareTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Shared value for the panel's vertical position
-  const translateY = useSharedValue(lowerSnapPoint);
+  const translateY = useSharedValue(panelHeight - 360);
 
   // Store the starting position when the gesture begins
   const context = useSharedValue<GestureContext>({ startY: 0 });
