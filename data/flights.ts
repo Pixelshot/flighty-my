@@ -7,12 +7,16 @@ export interface Flight {
     city: string;
     gate: string;
     terminal: string;
+    latitude?: number;
+    longitude?: number;
   };
   destination: {
     code: string;
     city: string;
     gate: string;
     terminal: string;
+    latitude?: number;
+    longitude?: number;
   };
   departureTime: string; // ISO 8601 format e.g. "2024-08-15T10:47:00Z"
   arrivalTime: string;   // ISO 8601 format e.g. "2024-08-15T19:31:00Z"

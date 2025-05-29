@@ -1,8 +1,8 @@
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Dimensions, Text, View } from "react-native";
 import { GestureHandlerRootView, PanGestureHandler, PanGestureHandlerGestureEvent } from 'react-native-gesture-handler';
-import MapView from 'react-native-maps';
+import MapView, { Marker, Polyline } from 'react-native-maps';
 import Animated, { useAnimatedGestureHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import FlightList from "../../components/FlightList";
 import ListHeader from "../../components/ListHeader";
@@ -27,6 +27,8 @@ export default function FlightScreen() {
   const [flights, setFlights] = useState<Flight[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedFlightCoords, setSelectedFlightCoords] = useState<{ origin?: { latitude: number, longitude: number }, destination?: { latitude: number, longitude: number } } | null>(null);
+  const mapRef = useRef<MapView>(null); // Ref for map
 
   // Shared value for the panel's vertical position
   const translateY = useSharedValue(lowerSnapPoint);
@@ -50,6 +52,25 @@ export default function FlightScreen() {
 
     loadFlights();
   }, []);
+
+  // Function to handle flight item press
+  const handleFlightPress = (flight: Flight) => {
+    if (flight.origin?.latitude !== undefined && flight.origin?.longitude !== undefined && flight.destination?.latitude !== undefined && flight.destination?.longitude !== undefined) {
+      const originCoord = { latitude: flight.origin.latitude, longitude: flight.origin.longitude };
+      const destinationCoord = { latitude: flight.destination.latitude, longitude: flight.destination.longitude };
+      setSelectedFlightCoords({ origin: originCoord, destination: destinationCoord });
+      // Animate map to origin location
+      mapRef.current?.animateToRegion({
+        latitude: originCoord.latitude,
+        longitude: originCoord.longitude,
+        latitudeDelta: 2,
+        longitudeDelta: 2,
+      }, 1000);
+    } else {
+      setSelectedFlightCoords(null);
+      console.warn('Coordinates not available for this flight.');
+    }
+  };
 
   // Animated gesture handler
   const gestureHandler = useAnimatedGestureHandler<PanGestureHandlerGestureEvent, GestureContext>({
@@ -84,6 +105,7 @@ export default function FlightScreen() {
 
         {/* Active Map as background */}
         <MapView
+          ref={mapRef} // Assign ref
           style={{ flex: 1 }}
           initialRegion={{
             latitude: 4.2,
@@ -91,7 +113,25 @@ export default function FlightScreen() {
             latitudeDelta: 5.5,
             longitudeDelta: 5.5,
           }}
-        />
+        >
+          {selectedFlightCoords?.origin && (
+            <Marker coordinate={selectedFlightCoords.origin} />
+          )}
+          {selectedFlightCoords?.destination && (
+            <Marker coordinate={selectedFlightCoords.destination} />
+          )}
+          {selectedFlightCoords?.origin && selectedFlightCoords?.destination && (
+            <Polyline
+              coordinates={[
+                selectedFlightCoords.origin,
+                selectedFlightCoords.destination,
+              ]}
+              strokeColor="#000" // Black
+              strokeColors={['#4ade80', '#f87171']} // Optional: gradient stroke
+              strokeWidth={3}
+            />
+          )}
+        </MapView>
 
         {/* Draggable Panel */}
         <PanGestureHandler onGestureEvent={gestureHandler}>
@@ -115,7 +155,7 @@ export default function FlightScreen() {
                   <Text className={`text-center ${theme === 'dark' ? 'text-white' : 'text-black'}`}>{error}</Text>
                 </View>
               ) : (
-                <FlightList searchQuery={searchQuery} flights={flights} />
+                <FlightList searchQuery={searchQuery} flights={flights} onPress={handleFlightPress} />
               )}
             </View>
           </Animated.View>

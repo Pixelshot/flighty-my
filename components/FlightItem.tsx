@@ -1,11 +1,12 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { Image, Text, View } from "react-native";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../context/ThemeContext";
 import { Flight } from "../data/flights";
 import { formatTime } from "../utils/timeUtils";
 
 interface FlightItemProps {
   item: Flight;
+  onPress?: (flight: Flight) => void;
 }
 
 const airlineLogoMap: { [key: string]: any } = {
@@ -28,7 +29,7 @@ function getAirlineLogo(airlineName: string) {
   return null; // or a default logo: require('../assets/airlines/default.png')
 }
 
-const FlightItem: React.FC<FlightItemProps> = ({ item }) => {
+const FlightItem: React.FC<FlightItemProps> = ({ item, onPress }) => {
   const statusColors: { [key: string]: string } = {
     "On Time": "text-green-600",
     "Delayed": "text-red-600",
@@ -49,65 +50,67 @@ const FlightItem: React.FC<FlightItemProps> = ({ item }) => {
   }
 
   return (
-    <View className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-md mb-4 mx-4 mt-4">
-      <View className="flex-row">
-        {/* Left Column: Time to Event */}
-        <View className="w-1/4 items-center justify-center pr-2 border-r border-gray-200 dark:border-gray-700">
-          <Text className="text-2xl font-semibold text-gray-800 dark:text-gray-100">
-            {item.timeToEventMajor}
-          </Text>
-          {item.timeToEventMinor && (
-            <Text className="text-xs text-gray-500 dark:text-gray-400 uppercase">
-              {item.timeToEventMinor.toUpperCase()}
+    <TouchableOpacity onPress={() => onPress?.(item)} activeOpacity={0.8}>
+      <View className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-md mb-4 mx-4 mt-4">
+        <View className="flex-row">
+          {/* Left Column: Time to Event */}
+          <View className="w-1/4 items-center justify-center pr-2 border-r border-gray-200 dark:border-gray-700">
+            <Text className="text-2xl font-semibold text-gray-800 dark:text-gray-100">
+              {item.timeToEventMajor}
             </Text>
-          )}
-        </View>
-
-        {/* Right Column: Flight Details */}
-        <View className="flex-1 pl-3">
-          {/* Section 1: Airline, Flight #, Status */}
-          <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center">
-              {/* Airline Logo or Icon */}
-              {getAirlineLogo(item.airline) ? (
-                <Image
-                  source={getAirlineLogo(item.airline)}
-                  style={{ width: 40, height: 40, resizeMode: "contain", marginRight: 8 }}
-                />
-              ) : (
-                <Ionicons name="airplane" size={20} color={theme === 'dark' ? '#D1D5DB' : '#555'} style={{ marginRight: 8 }} />
-              )}
-              <Text className="text-sm font-medium text-gray-800 dark:text-gray-200 pr-2">
-                {item.airline} {item.flightNumber}
+            {item.timeToEventMinor && (
+              <Text className="text-xs text-gray-500 dark:text-gray-400 uppercase">
+                {item.timeToEventMinor.toUpperCase()}
               </Text>
-            </View>
-            <Text className={`text-xs font-medium ${statusColor}`}>
-              {item.status}
-            </Text>
+            )}
           </View>
 
-          {/* Section 2: City to City */}
-          <Text className="text-lg font-semibold text-gray-900 dark:text-white mt-2">
-            {item.origin.city} <Text className="text-lg font-normal text-gray-900 dark:text-white">to</Text> {item.destination.city}
-          </Text>
+          {/* Right Column: Flight Details */}
+          <View className="flex-1 pl-3">
+            {/* Section 1: Airline, Flight #, Status */}
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center">
+                {/* Airline Logo or Icon */}
+                {getAirlineLogo(item.airline) ? (
+                  <Image
+                    source={getAirlineLogo(item.airline)}
+                    style={{ width: 40, height: 40, resizeMode: "contain", marginRight: 8 }}
+                  />
+                ) : (
+                  <Ionicons name="airplane" size={20} color={theme === 'dark' ? '#D1D5DB' : '#555'} style={{ marginRight: 8 }} />
+                )}
+                <Text className="text-sm font-medium text-gray-800 dark:text-gray-200 pr-2">
+                  {item.airline} {item.flightNumber}
+                </Text>
+              </View>
+              <Text className={`text-xs font-medium ${statusColor}`}>
+                {item.status}
+              </Text>
+            </View>
 
-          {/* Section 3: Times and Airport Codes */}
-          <View className="flex-row items-center mt-2">
-            <MaterialCommunityIcons name="airplane-takeoff" size={16} color={iconColor} />
-            <Text className="text-xs text-gray-700 dark:text-gray-300 ml-1">
-              {item.origin.code} {formatTime(item.departureTime)}
+            {/* Section 2: City to City */}
+            <Text className="text-lg font-semibold text-gray-900 dark:text-white mt-2">
+              {item.origin.city} <Text className="text-lg font-normal text-gray-900 dark:text-white">to</Text> {item.destination.city}
             </Text>
-            <View className="mx-2" />{/* Spacer */}
-            <MaterialCommunityIcons name="airplane-landing" size={16} color={iconColor} />
-            <Text className="text-xs text-gray-700 dark:text-gray-300 ml-1">
-              {item.destination.code} {formatTime(item.arrivalTime)}
-            </Text>
-            <View className="mx-10" />{/* Spacer */}
-           <Ionicons name="share-social-outline" size={24} color={theme === 'dark' ? "white" : "#4B5563"} />
+
+            {/* Section 3: Times and Airport Codes */}
+            <View className="flex-row items-center mt-2">
+              <MaterialCommunityIcons name="airplane-takeoff" size={16} color={iconColor} />
+              <Text className="text-xs text-gray-700 dark:text-gray-300 ml-1">
+                {item.origin.code} {formatTime(item.departureTime)}
+              </Text>
+              <View className="mx-2" />{/* Spacer */}
+              <MaterialCommunityIcons name="airplane-landing" size={16} color={iconColor} />
+              <Text className="text-xs text-gray-700 dark:text-gray-300 ml-1">
+                {item.destination.code} {formatTime(item.arrivalTime)}
+              </Text>
+              <View className="mx-10" />{/* Spacer */}
+             <Ionicons name="share-social-outline" size={24} color={theme === 'dark' ? "white" : "#4B5563"} />
+            </View>
           </View>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
