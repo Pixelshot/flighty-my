@@ -1,20 +1,21 @@
 import React from 'react';
 import { FlatList } from 'react-native';
-import { dummyFlights } from '../data/flights';
+import { Flight } from '../data/flights';
 import FlightItem from './FlightItem'; // Import the standalone FlightItem
 
 type FlightListProps = {
   searchQuery: string;
+  flights: Flight[];
 };
 
-const FlightList: React.FC<FlightListProps> = ({ searchQuery }) => {
-  const filteredFlights = dummyFlights.filter(flight => {
+const FlightList: React.FC<FlightListProps> = ({ searchQuery, flights }) => {
+  const filteredFlights = flights.filter(flight => {
     const q = searchQuery.toLowerCase();
     return (
-      flight.airline.toLowerCase().includes(q) ||
-      flight.flightNumber.toLowerCase().includes(q) ||
-      flight.origin.city.toLowerCase().includes(q) ||
-      flight.destination.city.toLowerCase().includes(q)
+      (flight.airline && flight.airline.toLowerCase().includes(q)) ||
+      (flight.flightNumber && flight.flightNumber.toLowerCase().includes(q)) ||
+      (flight.origin?.city && flight.origin.city.toLowerCase().includes(q)) ||
+      (flight.destination?.city && flight.destination.city.toLowerCase().includes(q))
     );
   });
 

@@ -1,12 +1,14 @@
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
-import { Dimensions, View } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Dimensions, Text, View } from "react-native";
 import { GestureHandlerRootView, PanGestureHandler, PanGestureHandlerGestureEvent } from 'react-native-gesture-handler';
 import MapView from 'react-native-maps';
 import Animated, { useAnimatedGestureHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import FlightList from "../../components/FlightList";
 import ListHeader from "../../components/ListHeader";
 import { useTheme } from "../../context/ThemeContext";
+import { Flight } from "../../data/flights";
+import { fetchFlights } from "../../services/flightService";
 
 const { height: screenHeight } = Dimensions.get('window');
 const panelHeight = screenHeight * 0.8; // Increased panel height (user's preferred height)
@@ -22,6 +24,9 @@ type GestureContext = {
 export default function FlightScreen() {
   const { theme } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
+  const [flights, setFlights] = useState<Flight[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Shared value for the panel's vertical position
   const translateY = useSharedValue(lowerSnapPoint);
@@ -29,6 +34,23 @@ export default function FlightScreen() {
   // Store the starting position when the gesture begins
   const context = useSharedValue<GestureContext>({ startY: 0 });
 
+  useEffect(() => {
+    const loadFlights = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchFlights();
+        setFlights(data);
+        setError(null);
+      } catch (err) {
+        setError('Failed to load flights. Please try again later.');
+        console.error('Error loading flights:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadFlights();
+  }, []);
 
   // Animated gesture handler
   const gestureHandler = useAnimatedGestureHandler<PanGestureHandlerGestureEvent, GestureContext>({
@@ -82,7 +104,17 @@ export default function FlightScreen() {
           >
             <ListHeader searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
             <View style={{ flex: 1 }}>
-              <FlightList searchQuery={searchQuery} />
+              {loading ? (
+                <View className="flex-1 justify-center items-center">
+                  <ActivityIndicator size="large" color={theme === 'dark' ? 'white' : 'black'} />
+                </View>
+              ) : error ? (
+                <View className="flex-1 justify-center items-center p-4">
+                  <Text className={`text-center ${theme === 'dark' ? 'text-white' : 'text-black'}`}>{error}</Text>
+                </View>
+              ) : (
+                <FlightList searchQuery={searchQuery} flights={flights} />
+              )}
             </View>
           </Animated.View>
         </PanGestureHandler>
