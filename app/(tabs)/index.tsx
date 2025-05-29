@@ -33,6 +33,7 @@ export default function FlightScreen() {
   const mapRef = useRef<MapView>(null); // Ref for map
   const [isSharing, setIsSharing] = useState(false);
   const shareTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
 
   // Shared value for the panel's vertical position (distance from top)
   const translateY = useSharedValue(defaultSnapPoint);
@@ -53,6 +54,12 @@ export default function FlightScreen() {
     // }, 1000); // Adjust delay as needed
     // return () => clearTimeout(loadTimeout);
   }, []);
+
+  // Measure the header height
+  const handleHeaderLayout = (event: any) => {
+    const { height } = event.nativeEvent.layout;
+    setHeaderHeight(height);
+  };
 
   // Function to handle flight item press
   const handleFlightPress = (flight: Flight) => {
@@ -175,6 +182,17 @@ export default function FlightScreen() {
     };
   });
 
+  // Animated style for the scrollable content container
+  const contentContainerAnimatedStyle = useAnimatedStyle(() => {
+    // Calculate the height available for the content below the header,
+    // considering the panel's current translateY position.
+    // We subtract headerHeight because the content starts below the header.
+    const availableHeight = screenHeight - translateY.value - headerHeight;
+    return {
+      height: availableHeight > 0 ? availableHeight : 0, // Ensure height is not negative
+    };
+  });
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View className={`flex-1 ${theme === 'dark' ? 'bg-black' : 'bg-gray-50'}`}>
@@ -224,10 +242,11 @@ export default function FlightScreen() {
               onHandlerStateChange={handleDoubleTap}
             >
               <View>
-                <ListHeader searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+                <ListHeader searchQuery={searchQuery} setSearchQuery={setSearchQuery} onLayout={handleHeaderLayout} />
               </View>
             </TapGestureHandler>
-            <View style={{ flex: 1 }}>
+
+            <Animated.View style={[{ flex: 1 }, contentContainerAnimatedStyle]}>
               {loading ? (
                 <View className="items-center mt-4 mx-4 mb-4">
                   <View className="flex-row items-center bg-white dark:bg-gray-800 p-3 rounded-lg shadow-md">
@@ -242,7 +261,7 @@ export default function FlightScreen() {
               ) : (
                 <FlightList searchQuery={searchQuery} flights={flights} onPress={handleFlightPress} onShare={handleShare} />
               )}
-            </View>
+            </Animated.View>
           </Animated.View>
         </PanGestureHandler>
       </View>

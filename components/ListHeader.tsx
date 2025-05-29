@@ -1,18 +1,19 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
-import { Switch, Text, TextInput, View } from 'react-native';
+import { LayoutChangeEvent, Switch, Text, TextInput, View } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 
 type ListHeaderProps = {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  onLayout?: (event: LayoutChangeEvent) => void;
 };
 
-const ListHeader: React.FC<ListHeaderProps> = ({ searchQuery, setSearchQuery }) => {
+const ListHeader: React.FC<ListHeaderProps> = ({ searchQuery, setSearchQuery, onLayout }) => {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <View className="pt-12 px-4 pb-4">
+    <View className="pt-12 px-4 pb-4" onLayout={onLayout}>
       {/* Top Row: Title and Icons */}
       <View className="flex-row justify-between items-center mb-4">
         <View className="flex-row items-center">
