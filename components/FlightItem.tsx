@@ -1,12 +1,31 @@
-
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { Text, View } from "react-native";
+import { Image, Text, View } from "react-native";
 import { useTheme } from "../context/ThemeContext";
 import { Flight } from "../data/flights";
 import { formatTime } from "../utils/timeUtils";
 
 interface FlightItemProps {
   item: Flight;
+}
+
+const airlineLogoMap: { [key: string]: any } = {
+  "singapore airlines": require("../assets/airlines/singapore.png"),
+  "airasia": require("../assets/airlines/airasiax.png"),
+  "airasia x": require("../assets/airlines/airasiax.png"), // Added for robustness
+  "emirates": require("../assets/airlines/emirates.png"),
+  "batik air": require("../assets/airlines/batikair.png"),
+  "malaysia airlines": require("../assets/airlines/mhlogo.png"),
+};
+
+function getAirlineLogo(airlineName: string) {
+  if (!airlineName) return null;
+  const name = airlineName.toLowerCase();
+  for (const key in airlineLogoMap) {
+    if (name.includes(key)) {
+      return airlineLogoMap[key];
+    }
+  }
+  return null; // or a default logo: require('../assets/airlines/default.png')
 }
 
 const FlightItem: React.FC<FlightItemProps> = ({ item }) => {
@@ -49,8 +68,16 @@ const FlightItem: React.FC<FlightItemProps> = ({ item }) => {
           {/* Section 1: Airline, Flight #, Status */}
           <View className="flex-row items-center justify-between">
             <View className="flex-row items-center">
-              <Ionicons name="airplane" size={20} color={theme === 'dark' ? '#D1D5DB' : '#555'} />
-              <Text className="text-sm font-medium text-gray-800 dark:text-gray-200 ml-2 pr-2">
+              {/* Airline Logo or Icon */}
+              {getAirlineLogo(item.airline) ? (
+                <Image
+                  source={getAirlineLogo(item.airline)}
+                  style={{ width: 40, height: 40, resizeMode: "contain", marginRight: 8 }}
+                />
+              ) : (
+                <Ionicons name="airplane" size={20} color={theme === 'dark' ? '#D1D5DB' : '#555'} style={{ marginRight: 8 }} />
+              )}
+              <Text className="text-sm font-medium text-gray-800 dark:text-gray-200 pr-2">
                 {item.airline} {item.flightNumber}
               </Text>
             </View>
@@ -61,7 +88,7 @@ const FlightItem: React.FC<FlightItemProps> = ({ item }) => {
 
           {/* Section 2: City to City */}
           <Text className="text-lg font-semibold text-gray-900 dark:text-white mt-2">
-            {item.origin.city} to {item.destination.city}
+            {item.origin.city} <Text className="text-lg font-normal text-gray-900 dark:text-white">to</Text> {item.destination.city}
           </Text>
 
           {/* Section 3: Times and Airport Codes */}
