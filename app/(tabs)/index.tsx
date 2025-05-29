@@ -1,9 +1,9 @@
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Dimensions, Share, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Dimensions, Share, Text, TouchableOpacity, View } from "react-native";
 import { GestureHandlerRootView, PanGestureHandler, PanGestureHandlerGestureEvent } from 'react-native-gesture-handler';
 import MapView, { Marker, Polyline } from 'react-native-maps';
-import Animated, { useAnimatedGestureHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import Animated, { useAnimatedGestureHandler, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import FlightList from "../../components/FlightList";
 import ListHeader from "../../components/ListHeader";
 import { useTheme } from "../../context/ThemeContext";
@@ -16,6 +16,7 @@ const initialSnapPoint = 0; // Panel at the bottom (not used for initial positio
 // const middleSnapPoint = -screenHeight * 0.4; // Roughly half way up
 const topSnapPoint = panelHeight - 760; // Top of panel 100 units from screen top
 const lowerSnapPoint = (panelHeight - 100); // Allow panel to be dragged down near the bottom of the screen
+const defaultSnapPoint = panelHeight - 360; // The desired default/initial position
 
 type GestureContext = {
   startY: number;
@@ -33,7 +34,10 @@ export default function FlightScreen() {
   const shareTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Shared value for the panel's vertical position
-  const translateY = useSharedValue(panelHeight - 360);
+  const translateY = useSharedValue(defaultSnapPoint);
+
+  // State to manage panel snap position
+  const [panelState, setPanelState] = useState('default'); // 'default', 'lower', 'top'
 
   // Store the starting position when the gesture begins
   const context = useSharedValue<GestureContext>({ startY: 0 });
@@ -116,6 +120,31 @@ export default function FlightScreen() {
     }
   };
 
+  // Function to handle header press for toggling
+  const handleHeaderPress = () => {
+    let nextState: 'default' | 'lower' | 'top';
+    let targetTranslateY;
+
+    switch (panelState) {
+      case 'default':
+        nextState = 'lower';
+        targetTranslateY = lowerSnapPoint;
+        break;
+      case 'lower':
+        nextState = 'top';
+        targetTranslateY = topSnapPoint;
+        break;
+      case 'top':
+      default:
+        nextState = 'default';
+        targetTranslateY = defaultSnapPoint;
+        break;
+    }
+
+    setPanelState(nextState);
+    translateY.value = withSpring(targetTranslateY);
+  };
+
   // Animated gesture handler
   const gestureHandler = useAnimatedGestureHandler<PanGestureHandlerGestureEvent, GestureContext>({
     onStart: (event, ctx) => {
@@ -129,6 +158,7 @@ export default function FlightScreen() {
     onEnd: (event, ctx) => {
       // You can add snapping logic here later if needed
       // For now, it just stops where the drag ends.
+      // Optional: Set panelState based on final position after drag ends
     },
   });
 
@@ -185,7 +215,10 @@ export default function FlightScreen() {
               panelAnimatedStyle
             ]}
           >
-            <ListHeader searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+            {/* Tappable Header */}
+            <TouchableOpacity onPress={handleHeaderPress} activeOpacity={0.8}>
+              <ListHeader searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+            </TouchableOpacity>
             <View style={{ flex: 1 }}>
               {loading ? (
                 <View className="items-center mt-4 mx-4 mb-4">
