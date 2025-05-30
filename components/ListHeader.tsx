@@ -103,7 +103,7 @@ const ListHeader: React.FC<ListHeaderProps> = ({ searchQuery, setSearchQuery, on
           {/* Manual Dubai Status Toggle Button */}
           {onToggleDubaiStatus && (
             <TouchableOpacity onPress={onToggleDubaiStatus} className="ml-3 mt-1">
-              <Ionicons name="airplane" size={24} color={theme === 'dark' ? "white" : "#4B5563"} />
+              <MaterialCommunityIcons name="airplane-alert" size={24} color={theme === 'dark' ? "white" : "#4B5563"} />
             </TouchableOpacity>
           )}
         </View>

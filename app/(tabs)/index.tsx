@@ -85,8 +85,8 @@ export default function FlightScreen() {
         if (flight.id === '4') return flight; // Exclude Dubai flight from interval updates
 
         // Example: Randomly change status of certain flights
-        if (flight.id === '2' && Math.random() > 0.5) { // AirAsia flight (keep as is)
-           const statuses: Flight['status'][] = ['Delayed', 'On Time'];
+        if (flight.id === '2' && Math.random() > 0.5) { // AirAsia flight - Delayed/Cancelled
+           const statuses: Flight['status'][] = ['Delayed', 'Canceled'];
            const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
            if (randomStatus !== flight.status) {
              console.log(`Simulating status change for ${flight.flightNumber}: ${flight.status} -> ${randomStatus}`);
@@ -134,7 +134,7 @@ export default function FlightScreen() {
         return [...updatedFlightsWithoutDubai, currentDubaiFlight]; // Update state
       });
 
-    }, 10000); // Check for updates every 10 seconds (adjust as needed)
+    }, 5000); // Check for updates every 5 seconds (adjust as needed)
 
     return () => clearInterval(updateInterval); // Clear interval on component unmount
 

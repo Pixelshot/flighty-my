@@ -38,6 +38,7 @@ const FlightItem: React.FC<FlightItemProps> = ({ item, onPress, onShare }) => {
     "Landed": "text-yellow-500",
     "Departs On Time": "text-green-600",
     "Gate Changed": "text-orange-500 dark:text-orange-400",
+    "Canceled": "text-red-600",
     // Add more statuses and their colors as needed
   };
 
@@ -129,16 +130,38 @@ const FlightItem: React.FC<FlightItemProps> = ({ item, onPress, onShare }) => {
                 // Default display for other flights/statuses
                 <View className="flex-row items-center">
                   {/* Takeoff Info */}
-                  <MaterialCommunityIcons name="airplane-takeoff" size={16} color={iconColor} />
-                  <Text className="text-xs text-gray-700 dark:text-gray-300 ml-1">
-                    {`${item.origin.code} ${formatTime(item.departureTime)}`}
-                  </Text>
+                  {item.status === 'Canceled' ? (
+                    <>
+                      <MaterialCommunityIcons name="airplane-takeoff" size={16} color="red" />
+                      <Text className="text-xs text-red-600 ml-1">
+                         {`${item.origin.code} TBA`}
+                      </Text>
+                    </>
+                  ) : (
+                    <>
+                       <MaterialCommunityIcons name="airplane-takeoff" size={16} color={iconColor} />
+                       <Text className="text-xs text-gray-700 dark:text-gray-300 ml-1">
+                         {`${item.origin.code} ${formatTime(item.departureTime)}`}
+                       </Text>
+                    </>
+                  )}
                   <View className="mx-2" />{/* Spacer */}
                   {/* Landing Info */}
-                  <MaterialCommunityIcons name="airplane-landing" size={16} color={iconColor} />
-                  <Text className="text-xs text-gray-700 dark:text-gray-300 ml-1">
-                    {`${item.destination.code} ${formatTime(item.arrivalTime)}`}
-                  </Text>
+                  {item.status === 'Canceled' ? (
+                    <>
+                      <MaterialCommunityIcons name="airplane-landing" size={16} color="red" />
+                      <Text className="text-xs text-red-600 ml-1">
+                         {`${item.destination.code} TBA`}
+                      </Text>
+                    </>
+                  ) : (
+                    <>
+                       <MaterialCommunityIcons name="airplane-landing" size={16} color={iconColor} />
+                       <Text className="text-xs text-gray-700 dark:text-gray-300 ml-1">
+                         {`${item.destination.code} ${formatTime(item.arrivalTime)}`}
+                       </Text>
+                    </>
+                  )}
                 </View>
               )}
               
