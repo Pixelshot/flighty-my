@@ -11,6 +11,17 @@ import { useTheme } from "../../context/ThemeContext";
 import { Flight, dummyFlights } from "../../data/flights";
 // import { fetchFlights } from "../../services/flightService"; // Comment out fetchFlights import
 
+// Configure notification handling for foreground notifications
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
+
 const { height: screenHeight } = Dimensions.get('window');
 const panelHeight = screenHeight * 0.95; // Increased panel height (used for calculation, not fixed height of view)
 
@@ -36,6 +47,9 @@ export default function FlightScreen() {
   const shareTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [headerHeight, setHeaderHeight] = useState(0);
 
+  // State for manual toggle of Dubai flight status
+  const [dubaiFlightStatus, setDubaiFlightStatus] = useState<'Landed' | 'Gate Changed'>('Landed');
+
   // Shared value for the panel's vertical position (distance from top)
   const translateY = useSharedValue(defaultSnapPoint);
 
@@ -46,15 +60,121 @@ export default function FlightScreen() {
   const context = useSharedValue<GestureContext>({ startY: 0 });
 
   useEffect(() => {
-    // Use dummy data instead of fetching from API
-    setLoading(true);
-    // Simulate a small loading delay if needed for visual testing
-    // const loadTimeout = setTimeout(() => {
-      setFlights(dummyFlights);
-      setLoading(false);
-    // }, 1000); // Adjust delay as needed
-    // return () => clearTimeout(loadTimeout);
+    // Use dummy data initially
+    // Find and set initial status for Dubai flight if it exists
+    const initialFlights = dummyFlights.map(flight => {
+        if (flight.id === '4') {
+            setDubaiFlightStatus(flight.status as 'Landed' | 'Gate Changed'); // Assuming initial is Landed or Gate Changed
+            return flight; // Return original for initial load
+        }
+        return flight;
+    });
+    setFlights(initialFlights);
+    setLoading(false);
+
+    // Request notification permissions
+    registerForPushNotificationsAsync();
+
+    // Simulate real-time updates and check for changes (excluding Dubai flight)
+    const updateInterval = setInterval(() => {
+      console.log('Simulating flight data update...');
+      // In a real app, you would fetch updated data here
+
+      // Simulate changes for demonstration (excluding flight ID 4)
+      const updatedDummyFlights = dummyFlights.map(flight => {
+        if (flight.id === '4') return flight; // Exclude Dubai flight from interval updates
+
+        // Example: Randomly change status of certain flights
+        if (flight.id === '2' && Math.random() > 0.5) { // AirAsia flight (keep as is)
+           const statuses: Flight['status'][] = ['Delayed', 'On Time'];
+           const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+           if (randomStatus !== flight.status) {
+             console.log(`Simulating status change for ${flight.flightNumber}: ${flight.status} -> ${randomStatus}`);
+             return { ...flight, status: randomStatus };
+           }
+        }
+        if (flight.id === '1' && Math.random() > 0.7) { // Malaysia Airlines flight - Delayed/On Time
+          const statuses: Flight['status'][] = ['Delayed', 'On Time'];
+          const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+          if (randomStatus !== flight.status) {
+            console.log(`Simulating status change for ${flight.flightNumber}: ${flight.status} -> ${randomStatus}`);
+            return { ...flight, status: randomStatus };
+          }
+        }
+
+        // In a real app, you'd handle time changes similarly
+        return flight;
+      });
+
+      // Compare updated data with current data and trigger notifications
+      setFlights(prevFlights => {
+        // Filter out the Dubai flight from previous and updated for comparison here
+        // Its changes will be handled by the manual toggle
+        const prevFlightsWithoutDubai = prevFlights.filter(f => f.id !== '4');
+        const updatedFlightsWithoutDubai = updatedDummyFlights.filter(f => f.id !== '4');
+
+        updatedFlightsWithoutDubai.forEach(updatedFlight => {
+          const previousFlight = prevFlightsWithoutDubai.find(pf => pf.id === updatedFlight.id);
+          if (previousFlight) {
+            if (previousFlight.status !== updatedFlight.status) {
+              let notificationBody = `Status changed from ${previousFlight.status} to ${updatedFlight.status}.`;
+              if (updatedFlight.id === '4' && updatedFlight.status === 'Gate Changed') {
+                notificationBody += ` Gate: A2`;
+              }
+              sendNotification(
+                `Flight ${updatedFlight.airline} ${updatedFlight.flightNumber} Status Change`,
+                notificationBody
+              );
+            }
+            // Add checks for departureTime, arrivalTime, gate, etc. here in a real app
+          }
+        });
+        // Merge updated non-Dubai flights with the current Dubai flight state
+        const currentDubaiFlight = prevFlights.find(f => f.id === '4') || dummyFlights.find(f => f.id === '4')!;
+        return [...updatedFlightsWithoutDubai, currentDubaiFlight]; // Update state
+      });
+
+    }, 10000); // Check for updates every 10 seconds (adjust as needed)
+
+    return () => clearInterval(updateInterval); // Clear interval on component unmount
+
   }, []);
+
+  // Function to manually toggle Dubai flight status
+  const toggleDubaiFlightStatus = () => {
+    setFlights(prevFlights => {
+        const currentFlights = [...prevFlights];
+        const dubaiFlightIndex = currentFlights.findIndex(f => f.id === '4');
+        
+        if (dubaiFlightIndex === -1) return prevFlights; // Should not happen with dummy data
+
+        const currentDubaiFlight = currentFlights[dubaiFlightIndex];
+        const previousStatus = currentDubaiFlight.status;
+        const newStatus = previousStatus === 'Landed' ? 'Gate Changed' : 'Landed';
+
+        const updatedDubaiFlight = { ...currentDubaiFlight, status: newStatus as Flight['status'] };
+
+        // Simulate gate update if changing to Gate Changed
+        if (newStatus === 'Gate Changed') {
+           updatedDubaiFlight.destination = { ...updatedDubaiFlight.destination!, gate: 'A4' };
+        }
+
+        currentFlights[dubaiFlightIndex] = updatedDubaiFlight;
+
+        // Trigger notification for the manual change
+        let notificationBody = `Status changed from ${previousStatus} to ${newStatus}.`;
+        if (newStatus === 'Gate Changed') {
+            notificationBody += ` Gate: A2`;
+        }
+        sendNotification(
+            `Flight ${updatedDubaiFlight.airline} ${updatedDubaiFlight.flightNumber} Status Change`,
+            notificationBody
+        );
+
+        setDubaiFlightStatus(newStatus as 'Landed' | 'Gate Changed'); // Update manual toggle state
+        return currentFlights; // Update flights state
+    });
+  };
 
   // Measure the header height
   const handleHeaderLayout = (event: any) => {
@@ -194,12 +314,31 @@ export default function FlightScreen() {
     };
   });
 
+  // Function to request permissions and get Expo push token
+  async function registerForPushNotificationsAsync() {
+    let token;
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    if (finalStatus !== 'granted') {
+      Alert.alert('Permission required', 'Please grant push notification permissions to receive flight updates!');
+      return;
+    }
+    token = (await Notifications.getExpoPushTokenAsync()).data;
+    console.log(token);
+    // In a real app, you would send this token to your backend server
+  }
+
   // Function to send a local notification
   async function sendNotification(title: string, body: string) {
     const schedulingOptions = {
       content: {
         title: title,
         body: body,
+        icon: 'asset://assets/airlines/airasiax.png', // Add AirAsia X icon - Note: Might not work in Expo Go
       },
       trigger: null, // Send immediately
     };
@@ -260,7 +399,7 @@ export default function FlightScreen() {
                   setSearchQuery={setSearchQuery} 
                   onLayout={handleHeaderLayout} 
                   currentPanelState={panelState} 
-                  onTestNotification={() => sendNotification('Test Notification', 'This is a test notification from the header!')}
+                  onToggleDubaiStatus={toggleDubaiFlightStatus}
                 />
               </View>
             </TapGestureHandler>
@@ -286,4 +425,35 @@ export default function FlightScreen() {
       </View>
     </GestureHandlerRootView>
   );
+}
+
+// Function to request permissions and get Expo push token
+async function registerForPushNotificationsAsync() {
+  let token;
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
+  let finalStatus = existingStatus;
+  if (existingStatus !== 'granted') {
+    const { status } = await Notifications.requestPermissionsAsync();
+    finalStatus = status;
+  }
+  if (finalStatus !== 'granted') {
+    Alert.alert('Permission required', 'Please grant push notification permissions to receive flight updates!');
+    return;
+  }
+  token = (await Notifications.getExpoPushTokenAsync()).data;
+  console.log(token);
+  // In a real app, you would send this token to your backend server
+}
+
+// Function to send a local notification
+async function sendNotification(title: string, body: string) {
+  const schedulingOptions = {
+    content: {
+      title: title,
+      body: body,
+      icon: 'asset://assets/airlines/airasiax.png', // Add AirAsia X icon - Note: Might not work in Expo Go
+    },
+    trigger: null, // Send immediately
+  };
+  await Notifications.scheduleNotificationAsync(schedulingOptions);
 }

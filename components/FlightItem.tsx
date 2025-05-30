@@ -34,9 +34,10 @@ function getAirlineLogo(airlineName: string) {
 const FlightItem: React.FC<FlightItemProps> = ({ item, onPress, onShare }) => {
   const statusColors: { [key: string]: string } = {
     "On Time": "text-green-600",
-    "Delayed": "text-red-600",
+    "Delayed": "text-pink-500 dark:text-pink-400",
     "Landed": "text-yellow-500",
     "Departs On Time": "text-green-600",
+    "Gate Changed": "text-orange-500 dark:text-orange-400",
     // Add more statuses and their colors as needed
   };
 
@@ -104,14 +105,14 @@ const FlightItem: React.FC<FlightItemProps> = ({ item, onPress, onShare }) => {
 
             {/* Section 3: Times and Airport Codes */}
             <View className="flex-row items-center justify-between mt-2">
-              {item.id === '4' && item.status === 'Landed' ? (
-                // Special display for Dubai flight when landed - Two separate containers
+              {item.id === '4' && (item.status === 'Landed' || item.status === 'Gate Changed') ? (
+                // Special display for Dubai flight when Landed or Gate Changed - Two separate containers
                 <View className="flex-row items-center">
                   {/* Baggage Gate */}
                   <View className="flex-row items-center bg-yellow-400 text-black p-2 rounded-md">
                     <MaterialCommunityIcons name="bag-checked" size={16} color="black" />
                     <Text className="text-black ml-1 text-xs">
-                      {`Gate: ${item.destination.gate}`}
+                      {`Gate: ${item.status === 'Gate Changed' ? 'A2' : 'A4'}`}
                     </Text>
                   </View>
                   {/* Spacer between gate and terminal */}

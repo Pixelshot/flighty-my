@@ -9,10 +9,10 @@ type ListHeaderProps = {
   setSearchQuery: (query: string) => void;
   onLayout?: (event: LayoutChangeEvent) => void;
   currentPanelState: 'top' | 'default' | 'lower';
-  onTestNotification?: () => void;
+  onToggleDubaiStatus?: () => void;
 };
 
-const ListHeader: React.FC<ListHeaderProps> = ({ searchQuery, setSearchQuery, onLayout, currentPanelState, onTestNotification }) => {
+const ListHeader: React.FC<ListHeaderProps> = ({ searchQuery, setSearchQuery, onLayout, currentPanelState, onToggleDubaiStatus }) => {
   const { theme, toggleTheme } = useTheme();
 
   // Shared value for the indicator's horizontal position
@@ -100,10 +100,10 @@ const ListHeader: React.FC<ListHeaderProps> = ({ searchQuery, setSearchQuery, on
         <View className="flex-row items-center">
           <Text className="text-3xl font-bold text-gray-800 dark:text-white">My Flights</Text>
           <Ionicons name="chevron-down" size={20} color={theme === 'dark' ? "white" : "#4B5563"} style={{ marginLeft: 5, marginTop: 5 }} />
-          {/* Test Notification Button */}
-          {onTestNotification && (
-            <TouchableOpacity onPress={onTestNotification} className="ml-3 mt-1">
-              <MaterialCommunityIcons name="airplane-alert" size={24} color={theme === 'dark' ? "white" : "#4B5563"} />
+          {/* Manual Dubai Status Toggle Button */}
+          {onToggleDubaiStatus && (
+            <TouchableOpacity onPress={onToggleDubaiStatus} className="ml-3 mt-1">
+              <Ionicons name="airplane" size={24} color={theme === 'dark' ? "white" : "#4B5563"} />
             </TouchableOpacity>
           )}
         </View>
