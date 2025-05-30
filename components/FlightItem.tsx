@@ -1,4 +1,5 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import React from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../context/ThemeContext";
 import { Flight } from "../data/flights";
@@ -34,21 +35,26 @@ const FlightItem: React.FC<FlightItemProps> = ({ item, onPress, onShare }) => {
   const statusColors: { [key: string]: string } = {
     "On Time": "text-green-600",
     "Delayed": "text-red-600",
-    "Landed": "text-blue-600",
+    "Landed": "text-yellow-500",
     "Departs On Time": "text-green-600",
     // Add more statuses and their colors as needed
   };
 
   const statusColor = statusColors[item.status] || "text-gray-600 dark:text-gray-400";
 
-  // Determine icon color based on status
+  // Determine icon color based on status - this will be overridden for the special landed state
   const { theme } = useTheme(); // Get theme for icon colors
   let iconColor = theme === 'dark' ? '#4ade80' : 'green'; // Tailwind green-500 approx
   if (item.status === "Delayed") {
     iconColor = theme === 'dark' ? '#f87171' : 'red'; // Tailwind red-500 approx
   } else if (item.status === "Landed") {
-    iconColor = theme === 'dark' ? '#60a5fa' : 'blue'; // Tailwind blue-500 approx
+    iconColor = theme === 'dark' ? '#eab308' : '#eab308'; // Yellow for landed status
   }
+
+  // Determine text color for the left column based on status and theme
+  const leftColumnTextColor = item.status === 'Landed' 
+    ? (theme === 'dark' ? 'text-yellow-500' : 'text-yellow-700') 
+    : (theme === 'dark' ? 'text-gray-100' : 'text-gray-800');
 
   return (
     <TouchableOpacity onPress={() => onPress?.(item)} activeOpacity={0.8}>
@@ -56,7 +62,7 @@ const FlightItem: React.FC<FlightItemProps> = ({ item, onPress, onShare }) => {
         <View className="flex-row">
           {/* Left Column: Time to Event */}
           <View className="w-1/4 items-center justify-center pr-2 border-r border-gray-200 dark:border-gray-700">
-            <Text className="text-2xl font-semibold text-gray-800 dark:text-gray-100">
+            <Text className={`text-2xl font-semibold ${leftColumnTextColor}`}>
               {item.timeToEventMajor}
             </Text>
             {item.timeToEventMinor && (
@@ -90,22 +96,51 @@ const FlightItem: React.FC<FlightItemProps> = ({ item, onPress, onShare }) => {
             </View>
 
             {/* Section 2: City to City */}
-            <Text className="text-lg font-semibold text-gray-900 dark:text-white mt-2">
-              {item.origin.city} <Text className="text-lg font-normal text-gray-900 dark:text-white">to</Text> {item.destination.city}
-            </Text>
+            <View className="justify-center">
+              <Text className="text-lg font-semibold text-gray-900 dark:text-white">
+                {`${item.origin.city} to ${item.destination.city}`}
+              </Text>
+            </View>
 
             {/* Section 3: Times and Airport Codes */}
-            <View className="flex-row items-center mt-2">
-              <MaterialCommunityIcons name="airplane-takeoff" size={16} color={iconColor} />
-              <Text className="text-xs text-gray-700 dark:text-gray-300 ml-1">
-                {item.origin.code} {formatTime(item.departureTime)}
-              </Text>
-              <View className="mx-2" />{/* Spacer */}
-              <MaterialCommunityIcons name="airplane-landing" size={16} color={iconColor} />
-              <Text className="text-xs text-gray-700 dark:text-gray-300 ml-1">
-                {item.destination.code} {formatTime(item.arrivalTime)}
-              </Text>
-              <View className="mx-10" />{/* Spacer */}
+            <View className="flex-row items-center justify-between mt-2">
+              {item.id === '4' && item.status === 'Landed' ? (
+                // Special display for Dubai flight when landed - Two separate containers
+                <View className="flex-row items-center">
+                  {/* Baggage Gate */}
+                  <View className="flex-row items-center bg-yellow-400 text-black p-2 rounded-md">
+                    <MaterialCommunityIcons name="bag-checked" size={16} color="black" />
+                    <Text className="text-black ml-1 text-xs">
+                      {`Gate: ${item.destination.gate}`}
+                    </Text>
+                  </View>
+                  {/* Spacer between gate and terminal */}
+                  <View className="mx-2" />
+                  {/* Terminal */}
+                  <View className="flex-row items-center bg-yellow-400 text-black p-2 rounded-md">
+                    <MaterialCommunityIcons name="airport" size={16} color="black" />
+                    <Text className="text-black ml-1 text-xs">
+                      {`Terminal: ${item.destination.terminal}`}
+                    </Text>
+                  </View>
+                </View>
+              ) : (
+                // Default display for other flights/statuses
+                <View className="flex-row items-center">
+                  {/* Takeoff Info */}
+                  <MaterialCommunityIcons name="airplane-takeoff" size={16} color={iconColor} />
+                  <Text className="text-xs text-gray-700 dark:text-gray-300 ml-1">
+                    {`${item.origin.code} ${formatTime(item.departureTime)}`}
+                  </Text>
+                  <View className="mx-2" />{/* Spacer */}
+                  {/* Landing Info */}
+                  <MaterialCommunityIcons name="airplane-landing" size={16} color={iconColor} />
+                  <Text className="text-xs text-gray-700 dark:text-gray-300 ml-1">
+                    {`${item.destination.code} ${formatTime(item.arrivalTime)}`}
+                  </Text>
+                </View>
+              )}
+              
               {/* Share Button */}
               <TouchableOpacity 
                 onPress={(e) => {
@@ -125,4 +160,4 @@ const FlightItem: React.FC<FlightItemProps> = ({ item, onPress, onShare }) => {
   );
 };
 
-export default FlightItem; 
+export default FlightItem;
