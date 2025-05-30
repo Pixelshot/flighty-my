@@ -1,6 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
-import { LayoutChangeEvent, Switch, Text, TextInput, View } from 'react-native';
+import { LayoutChangeEvent, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useTheme } from '../context/ThemeContext';
 
@@ -9,9 +9,10 @@ type ListHeaderProps = {
   setSearchQuery: (query: string) => void;
   onLayout?: (event: LayoutChangeEvent) => void;
   currentPanelState: 'top' | 'default' | 'lower';
+  onTestNotification?: () => void;
 };
 
-const ListHeader: React.FC<ListHeaderProps> = ({ searchQuery, setSearchQuery, onLayout, currentPanelState }) => {
+const ListHeader: React.FC<ListHeaderProps> = ({ searchQuery, setSearchQuery, onLayout, currentPanelState, onTestNotification }) => {
   const { theme, toggleTheme } = useTheme();
 
   // Shared value for the indicator's horizontal position
@@ -99,6 +100,12 @@ const ListHeader: React.FC<ListHeaderProps> = ({ searchQuery, setSearchQuery, on
         <View className="flex-row items-center">
           <Text className="text-3xl font-bold text-gray-800 dark:text-white">My Flights</Text>
           <Ionicons name="chevron-down" size={20} color={theme === 'dark' ? "white" : "#4B5563"} style={{ marginLeft: 5, marginTop: 5 }} />
+          {/* Test Notification Button */}
+          {onTestNotification && (
+            <TouchableOpacity onPress={onTestNotification} className="ml-3 mt-1">
+              <MaterialCommunityIcons name="airplane-alert" size={24} color={theme === 'dark' ? "white" : "#4B5563"} />
+            </TouchableOpacity>
+          )}
         </View>
         <View className="flex-row items-center space-x-3">
           {/* Theme Toggle Switch */}

@@ -1,3 +1,4 @@
+import * as Notifications from 'expo-notifications';
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Dimensions, Share, Text, View } from "react-native";
@@ -193,6 +194,18 @@ export default function FlightScreen() {
     };
   });
 
+  // Function to send a local notification
+  async function sendNotification(title: string, body: string) {
+    const schedulingOptions = {
+      content: {
+        title: title,
+        body: body,
+      },
+      trigger: null, // Send immediately
+    };
+    await Notifications.scheduleNotificationAsync(schedulingOptions);
+  }
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View className={`flex-1 ${theme === 'dark' ? 'bg-black' : 'bg-gray-50'}`}>
@@ -242,7 +255,13 @@ export default function FlightScreen() {
               onHandlerStateChange={handleDoubleTap}
             >
               <View>
-                <ListHeader searchQuery={searchQuery} setSearchQuery={setSearchQuery} onLayout={handleHeaderLayout} currentPanelState={panelState} />
+                <ListHeader 
+                  searchQuery={searchQuery} 
+                  setSearchQuery={setSearchQuery} 
+                  onLayout={handleHeaderLayout} 
+                  currentPanelState={panelState} 
+                  onTestNotification={() => sendNotification('Test Notification', 'This is a test notification from the header!')}
+                />
               </View>
             </TapGestureHandler>
 
