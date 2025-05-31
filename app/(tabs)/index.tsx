@@ -47,8 +47,14 @@ export default function FlightScreen() {
   const shareTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [headerHeight, setHeaderHeight] = useState(0);
 
-  // State for manual toggle of Dubai flight status
-  const [dubaiFlightStatus, setDubaiFlightStatus] = useState<'Landed' | 'Gate Changed'>('Landed');
+  // --- Notification Queue Logic ---
+  const [notificationQueue, setNotificationQueue] = useState<{ title: string; body: string }[]>([]);
+  const isProcessingQueue = useRef(false);
+  const notificationDelayTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // ---
+
+  // State for manual toggle of Dubai flight status (removing this, as all will be random)
+  // const [dubaiFlightStatus, setDubaiFlightStatus] = useState<'Landed' | 'Gate Changed'>('Landed');
 
   // Shared value for the panel's vertical position (distance from top)
   const translateY = useSharedValue(defaultSnapPoint);
@@ -61,120 +67,176 @@ export default function FlightScreen() {
 
   useEffect(() => {
     // Use dummy data initially
-    // Find and set initial status for Dubai flight if it exists
-    const initialFlights = dummyFlights.map(flight => {
-        if (flight.id === '4') {
-            setDubaiFlightStatus(flight.status as 'Landed' | 'Gate Changed'); // Assuming initial is Landed or Gate Changed
-            return flight; // Return original for initial load
-        }
-        return flight;
-    });
-    setFlights(initialFlights);
+    // Find and set initial status for Dubai flight if it exists (removing this)
+    // const initialFlights = dummyFlights.map(flight => {
+    //     if (flight.id === '4') {
+    //         setDubaiFlightStatus(flight.status as 'Landed' | 'Gate Changed'); // Assuming initial is Landed or Gate Changed
+    //         return flight; // Return original for initial load
+    //     }
+    //     return flight;
+    // });
+    setFlights(dummyFlights); // Start with original dummy data
     setLoading(false);
 
     // Request notification permissions
     registerForPushNotificationsAsync();
 
-    // Simulate real-time updates and check for changes (excluding Dubai flight)
+    // Simulate real-time updates and check for changes (including all flights)
     const updateInterval = setInterval(() => {
       console.log('Simulating flight data update...');
-      // In a real app, you would fetch updated data here
-
-      // Simulate changes for demonstration (excluding flight ID 4)
-      const updatedDummyFlights = dummyFlights.map(flight => {
-        if (flight.id === '4') return flight; // Exclude Dubai flight from interval updates
-
-        // Example: Randomly change status of certain flights
-        if (flight.id === '2' && Math.random() > 0.5) { // AirAsia flight - Delayed/Cancelled
-           const statuses: Flight['status'][] = ['Delayed', 'Canceled'];
-           const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
-           if (randomStatus !== flight.status) {
-             console.log(`Simulating status change for ${flight.flightNumber}: ${flight.status} -> ${randomStatus}`);
-             return { ...flight, status: randomStatus };
-           }
-        }
-        if (flight.id === '1' && Math.random() > 0.7) { // Malaysia Airlines flight - Delayed/On Time
-          const statuses: Flight['status'][] = ['Delayed', 'On Time'];
-          const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
-          if (randomStatus !== flight.status) {
-            console.log(`Simulating status change for ${flight.flightNumber}: ${flight.status} -> ${randomStatus}`);
-            return { ...flight, status: randomStatus };
-          }
-        }
-
-        // In a real app, you'd handle time changes similarly
-        return flight;
-      });
-
-      // Compare updated data with current data and trigger notifications
+      
       setFlights(prevFlights => {
-        // Filter out the Dubai flight from previous and updated for comparison here
-        // Its changes will be handled by the manual toggle
-        const prevFlightsWithoutDubai = prevFlights.filter(f => f.id !== '4');
-        const updatedFlightsWithoutDubai = updatedDummyFlights.filter(f => f.id !== '4');
-
-        updatedFlightsWithoutDubai.forEach(updatedFlight => {
-          const previousFlight = prevFlightsWithoutDubai.find(pf => pf.id === updatedFlight.id);
-          if (previousFlight) {
-            if (previousFlight.status !== updatedFlight.status) {
-              let notificationBody = `Status changed from ${previousFlight.status} to ${updatedFlight.status}.`;
-              if (updatedFlight.id === '4' && updatedFlight.status === 'Gate Changed') {
-                notificationBody += ` Gate: A2`;
-              }
-              sendNotification(
-                `Flight ${updatedFlight.airline} ${updatedFlight.flightNumber} Status Change`,
-                notificationBody
-              );
+        const notificationsToAdd: { title: string; body: string }[] = [];
+        
+        const updatedFlights = prevFlights.map(flight => {
+          // Create a copy of the flight to potentially modify
+          let updatedFlight = { ...flight };
+          
+          // Simulate random status changes for all flights
+          if (flight.id === '1' && Math.random() > 0.7) { // Malaysia Airlines - On Time/Delayed
+            const statuses: Flight['status'][] = ['On Time', 'Delayed'];
+            const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+            if (randomStatus !== flight.status) {
+              console.log(`Simulating status change for ${flight.flightNumber}: ${flight.status} -> ${randomStatus}`);
+              updatedFlight.status = randomStatus;
             }
-            // Add checks for departureTime, arrivalTime, gate, etc. here in a real app
           }
+          
+          if (flight.id === '2' && Math.random() > 0.5) { // AirAsia - Delayed/Canceled/On Time
+            const statuses: Flight['status'][] = ['Delayed', 'Canceled', 'On Time'];
+            const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+            if (randomStatus !== flight.status) {
+              console.log(`Simulating status change for ${flight.flightNumber}: ${flight.status} -> ${randomStatus}`);
+              updatedFlight.status = randomStatus;
+            }
+          }
+          
+          if (flight.id === '3' && Math.random() > 0.6) { // Singapore Airlines - On Time/Delayed/Departed
+            const statuses: Flight['status'][] = ['On Time', 'Delayed', 'Departed'];
+            const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+            if (randomStatus !== flight.status) {
+              console.log(`Simulating status change for ${flight.flightNumber}: ${flight.status} -> ${randomStatus}`);
+              updatedFlight.status = randomStatus;
+            }
+          }
+          
+          if (flight.id === '4' && Math.random() > 0.6) { // Emirates - Landed/Gate Changed
+            const statuses: Flight['status'][] = ['Landed', 'Gate Changed'];
+            const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+            if (randomStatus !== flight.status) {
+              console.log(`Simulating status change for ${flight.flightNumber}: ${flight.status} -> ${randomStatus}`);
+              updatedFlight.status = randomStatus;
+              // When changing to Gate Changed, also simulate a gate update
+              if (randomStatus === 'Gate Changed') {
+                updatedFlight.destination = { ...updatedFlight.destination, gate: 'A2' };
+              }
+            }
+          }
+          
+          if (flight.id === '5' && Math.random() > 0.8) { // Batik Air - On Time/Delayed/Departed
+            const statuses: Flight['status'][] = ['On Time', 'Delayed', 'Departed'];
+            const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+            if (randomStatus !== flight.status) {
+              console.log(`Simulating status change for ${flight.flightNumber}: ${flight.status} -> ${randomStatus}`);
+              updatedFlight.status = randomStatus;
+            }
+          }
+          
+          // Check if status changed and add notification
+          if (flight.status !== updatedFlight.status) {
+            let notificationBody = `Status changed from ${flight.status} to ${updatedFlight.status}.`;
+            // Special gate logic for Dubai flight notification body
+            if (updatedFlight.id === '4' && updatedFlight.status === 'Gate Changed') {
+              notificationBody += ` Gate: A2`;
+            }
+
+            notificationsToAdd.push({
+              title: `Flight ${updatedFlight.airline} ${updatedFlight.flightNumber} Status Change`,
+              body: notificationBody,
+            });
+          }
+          
+          return updatedFlight;
         });
-        // Merge updated non-Dubai flights with the current Dubai flight state
-        const currentDubaiFlight = prevFlights.find(f => f.id === '4') || dummyFlights.find(f => f.id === '4')!;
-        return [...updatedFlightsWithoutDubai, currentDubaiFlight]; // Update state
+
+        // Add detected notifications to the queue state
+        if (notificationsToAdd.length > 0) {
+           setNotificationQueue(prevQueue => [...prevQueue, ...notificationsToAdd]);
+        }
+
+        return updatedFlights;
       });
 
-    }, 5000); // Check for updates every 5 seconds (adjust as needed)
+    }, 7000); // Check for updates every 7 seconds
 
-    return () => clearInterval(updateInterval); // Clear interval on component unmount
+    return () => {
+      clearInterval(updateInterval);
+      if (notificationDelayTimer.current) {
+        clearTimeout(notificationDelayTimer.current);
+      }
+    }; // Clear interval and timer on component unmount
 
   }, []);
 
-  // Function to manually toggle Dubai flight status
-  const toggleDubaiFlightStatus = () => {
-    setFlights(prevFlights => {
-        const currentFlights = [...prevFlights];
-        const dubaiFlightIndex = currentFlights.findIndex(f => f.id === '4');
+  // --- Effect to process notification queue sequentially ---
+  useEffect(() => {
+    const processQueue = async () => {
+      if (notificationQueue.length > 0 && !isProcessingQueue.current) {
+        isProcessingQueue.current = true;
+        const nextNotification = notificationQueue[0];
+
+        // Send the notification
+        await sendNotification(nextNotification.title, nextNotification.body);
+
+        // Wait for 5 seconds before processing the next one
+        notificationDelayTimer.current = setTimeout(() => {
+          setNotificationQueue(prevQueue => prevQueue.slice(1)); // Remove the sent notification
+          isProcessingQueue.current = false;
+        }, 5000); // 5-second delay between notifications
+      }
+    };
+
+    processQueue();
+
+  }, [notificationQueue]); // Rerun effect when queue changes
+  // ---
+
+  // Function to manually toggle Dubai flight status (removing this)
+  // const toggleDubaiFlightStatus = () => {
+  //   setFlights(prevFlights => {
+  //       const currentFlights = [...prevFlights];
+  //       const dubaiFlightIndex = currentFlights.findIndex(f => f.id === '4');
         
-        if (dubaiFlightIndex === -1) return prevFlights; // Should not happen with dummy data
+  //       if (dubaiFlightIndex === -1) return prevFlights; // Should not happen with dummy data
 
-        const currentDubaiFlight = currentFlights[dubaiFlightIndex];
-        const previousStatus = currentDubaiFlight.status;
-        const newStatus = previousStatus === 'Landed' ? 'Gate Changed' : 'Landed';
+  //       const currentDubaiFlight = currentFlights[dubaiFlightIndex];
+  //       const previousStatus = currentDubaiFlight.status;
+  //       const newStatus = previousStatus === 'Landed' ? 'Gate Changed' : 'Landed';
 
-        const updatedDubaiFlight = { ...currentDubaiFlight, status: newStatus as Flight['status'] };
+  //       const updatedDubaiFlight = { ...currentDubaiFlight, status: newStatus as Flight['status'] };
 
-        // Simulate gate update if changing to Gate Changed
-        if (newStatus === 'Gate Changed') {
-           updatedDubaiFlight.destination = { ...updatedDubaiFlight.destination!, gate: 'A4' };
-        }
+  //       // Simulate gate update if changing to Gate Changed
+  //       if (newStatus === 'Gate Changed') {
+  //          updatedDubaiFlight.destination = { ...updatedDubaiFlight.destination!, gate: 'A4' };
+  //       }
 
-        currentFlights[dubaiFlightIndex] = updatedDubaiFlight;
+  //       currentFlights[dubaiFlightIndex] = updatedDubaiFlight;
 
-        // Trigger notification for the manual change
-        let notificationBody = `Status changed from ${previousStatus} to ${newStatus}.`;
-        if (newStatus === 'Gate Changed') {
-            notificationBody += ` Gate: A2`;
-        }
-        sendNotification(
-            `Flight ${updatedDubaiFlight.airline} ${updatedDubaiFlight.flightNumber} Status Change`,
-            notificationBody
-        );
+  //       // Trigger notification for the manual change (add to queue instead)
+  //       let notificationBody = `Status changed from ${previousStatus} to ${newStatus}.`;
+  //       if (newStatus === 'Gate Changed') {
+  //           notificationBody += ` Gate: A2`;
+  //       }
+  //       // Add to queue
+  //       setNotificationQueue(prevQueue => [...prevQueue, {
+  //           title: `Flight ${updatedDubaiFlight.airline} ${updatedDubaiFlight.flightNumber} Status Change`,
+  //           body: notificationBody,
+  //       }]);
 
-        setDubaiFlightStatus(newStatus as 'Landed' | 'Gate Changed'); // Update manual toggle state
-        return currentFlights; // Update flights state
-    });
-  };
+  //       setDubaiFlightStatus(newStatus as 'Landed' | 'Gate Changed'); // Update manual toggle state (remove this)
+  //       return currentFlights; // Update flights state
+  //   });
+  // };
 
   // Measure the header height
   const handleHeaderLayout = (event: any) => {
@@ -399,7 +461,6 @@ export default function FlightScreen() {
                   setSearchQuery={setSearchQuery} 
                   onLayout={handleHeaderLayout} 
                   currentPanelState={panelState} 
-                  onToggleDubaiStatus={toggleDubaiFlightStatus}
                 />
               </View>
             </TapGestureHandler>
@@ -427,33 +488,3 @@ export default function FlightScreen() {
   );
 }
 
-// Function to request permissions and get Expo push token
-async function registerForPushNotificationsAsync() {
-  let token;
-  const { status: existingStatus } = await Notifications.getPermissionsAsync();
-  let finalStatus = existingStatus;
-  if (existingStatus !== 'granted') {
-    const { status } = await Notifications.requestPermissionsAsync();
-    finalStatus = status;
-  }
-  if (finalStatus !== 'granted') {
-    Alert.alert('Permission required', 'Please grant push notification permissions to receive flight updates!');
-    return;
-  }
-  token = (await Notifications.getExpoPushTokenAsync()).data;
-  console.log(token);
-  // In a real app, you would send this token to your backend server
-}
-
-// Function to send a local notification
-async function sendNotification(title: string, body: string) {
-  const schedulingOptions = {
-    content: {
-      title: title,
-      body: body,
-      icon: 'asset://assets/airlines/airasiax.png', // Add AirAsia X icon - Note: Might not work in Expo Go
-    },
-    trigger: null, // Send immediately
-  };
-  await Notifications.scheduleNotificationAsync(schedulingOptions);
-}

@@ -36,6 +36,7 @@ const FlightItem: React.FC<FlightItemProps> = ({ item, onPress, onShare }) => {
     "On Time": "text-green-600",
     "Delayed": "text-pink-500 dark:text-pink-400",
     "Landed": "text-yellow-500",
+    "Departed": "text-blue-600 dark:text-blue-400",
     "Departs On Time": "text-green-600",
     "Gate Changed": "text-orange-500 dark:text-orange-400",
     "Canceled": "text-red-600",
@@ -64,13 +65,26 @@ const FlightItem: React.FC<FlightItemProps> = ({ item, onPress, onShare }) => {
         <View className="flex-row">
           {/* Left Column: Time to Event */}
           <View className="w-1/4 items-center justify-center pr-2 border-r border-gray-200 dark:border-gray-700">
-            <Text className={`text-2xl font-semibold ${leftColumnTextColor}`}>
-              {item.timeToEventMajor}
-            </Text>
-            {item.timeToEventMinor && (
-              <Text className="text-xs text-gray-500 dark:text-gray-400 uppercase">
-                {item.timeToEventMinor.toUpperCase()}
-              </Text>
+            {item.status === 'Gate Changed' ? (
+              <>
+                <Text className="text-2xl font-semibold text-orange-600 dark:text-orange-400">
+                  Landed
+                </Text>
+                <Text className="text-xs text-orange-500 dark:text-orange-300 uppercase mt-1 ml-1">
+                  GATE CHANGED
+                </Text>
+              </>
+            ) : (
+              <>
+                <Text className={`text-2xl font-semibold ${leftColumnTextColor}`}>
+                  {item.timeToEventMajor}
+                </Text>
+                {item.timeToEventMinor && (
+                  <Text className="text-xs text-gray-500 dark:text-gray-400 uppercase mt-1">
+                    {item.timeToEventMinor.toUpperCase()}
+                  </Text>
+                )}
+              </>
             )}
           </View>
 
@@ -113,7 +127,7 @@ const FlightItem: React.FC<FlightItemProps> = ({ item, onPress, onShare }) => {
                   <View className="flex-row items-center bg-yellow-400 text-black p-2 rounded-md">
                     <MaterialCommunityIcons name="bag-checked" size={16} color="black" />
                     <Text className="text-black ml-1 text-xs">
-                      {`Gate: ${item.status === 'Gate Changed' ? 'A2' : 'A4'}`}
+                      {`Gate: ${item.status === 'Gate Changed' ? 'A4 -> A2' : 'A4'}`}
                     </Text>
                   </View>
                   {/* Spacer between gate and terminal */}
