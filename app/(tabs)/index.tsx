@@ -51,6 +51,8 @@ export default function FlightScreen() {
   const [notificationQueue, setNotificationQueue] = useState<{ title: string; body: string }[]>([]);
   const isProcessingQueue = useRef(false);
   const notificationDelayTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isSimulationActive, setIsSimulationActive] = useState(false);
+  const simulationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   // ---
 
   // State for manual toggle of Dubai flight status (removing this, as all will be random)
@@ -67,116 +69,142 @@ export default function FlightScreen() {
 
   useEffect(() => {
     // Use dummy data initially
-    // Find and set initial status for Dubai flight if it exists (removing this)
-    // const initialFlights = dummyFlights.map(flight => {
-    //     if (flight.id === '4') {
-    //         setDubaiFlightStatus(flight.status as 'Landed' | 'Gate Changed'); // Assuming initial is Landed or Gate Changed
-    //         return flight; // Return original for initial load
-    //     }
-    //     return flight;
-    // });
     setFlights(dummyFlights); // Start with original dummy data
     setLoading(false);
 
     // Request notification permissions
     registerForPushNotificationsAsync();
 
-    // Simulate real-time updates and check for changes (including all flights)
-    const updateInterval = setInterval(() => {
-      console.log('Simulating flight data update...');
+    // Cleanup function
+    return () => {
+      const currentInterval = simulationIntervalRef.current;
+      const currentTimer = notificationDelayTimer.current;
       
-      setFlights(prevFlights => {
-        const notificationsToAdd: { title: string; body: string }[] = [];
+      if (currentInterval) {
+        clearInterval(currentInterval);
+      }
+      if (currentTimer) {
+        clearTimeout(currentTimer);
+      }
+    };
+  }, []);
+
+  // Toggle simulation function
+  const toggleSimulation = () => {
+    if (isSimulationActive) {
+      // Stop simulation
+      if (simulationIntervalRef.current) {
+        clearInterval(simulationIntervalRef.current);
+        simulationIntervalRef.current = null;
+      }
+      setIsSimulationActive(false);
+      console.log('Simulation stopped');
+    } else {
+      // Start simulation
+      console.log('Simulation started');
+      setIsSimulationActive(true);
+      
+      const updateInterval = setInterval(() => {
+        console.log('Simulating flight data update...');
         
-        const updatedFlights = prevFlights.map(flight => {
-          // Create a copy of the flight to potentially modify
-          let updatedFlight = { ...flight };
+        setFlights(prevFlights => {
+          const notificationsToAdd: { title: string; body: string }[] = [];
           
-          // Simulate random status changes for all flights
-          if (flight.id === '1' && Math.random() > 0.7) { // Malaysia Airlines - On Time/Delayed
-            const statuses: Flight['status'][] = ['On Time', 'Delayed'];
-            const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
-            if (randomStatus !== flight.status) {
-              console.log(`Simulating status change for ${flight.flightNumber}: ${flight.status} -> ${randomStatus}`);
-              updatedFlight.status = randomStatus;
-            }
-          }
-          
-          if (flight.id === '2' && Math.random() > 0.5) { // AirAsia - Delayed/Canceled/On Time
-            const statuses: Flight['status'][] = ['Delayed', 'Canceled', 'On Time'];
-            const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
-            if (randomStatus !== flight.status) {
-              console.log(`Simulating status change for ${flight.flightNumber}: ${flight.status} -> ${randomStatus}`);
-              updatedFlight.status = randomStatus;
-            }
-          }
-          
-          if (flight.id === '3' && Math.random() > 0.6) { // Singapore Airlines - On Time/Delayed/Departed
-            const statuses: Flight['status'][] = ['On Time', 'Delayed', 'Departed'];
-            const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
-            if (randomStatus !== flight.status) {
-              console.log(`Simulating status change for ${flight.flightNumber}: ${flight.status} -> ${randomStatus}`);
-              updatedFlight.status = randomStatus;
-            }
-          }
-          
-          if (flight.id === '4' && Math.random() > 0.6) { // Emirates - Landed/Gate Changed
-            const statuses: Flight['status'][] = ['Landed', 'Gate Changed'];
-            const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
-            if (randomStatus !== flight.status) {
-              console.log(`Simulating status change for ${flight.flightNumber}: ${flight.status} -> ${randomStatus}`);
-              updatedFlight.status = randomStatus;
-              // When changing to Gate Changed, also simulate a gate update
-              if (randomStatus === 'Gate Changed') {
-                updatedFlight.destination = { ...updatedFlight.destination, gate: 'A2' };
+          const updatedFlights = prevFlights.map(flight => {
+            // Create a copy of the flight to potentially modify
+            let updatedFlight = { ...flight };
+            
+            // Simulate random status changes for all flights
+            if (flight.id === '1' && Math.random() > 0.7) { // Malaysia Airlines - On Time/Delayed
+              const statuses: Flight['status'][] = ['On Time', 'Delayed'];
+              const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+              if (randomStatus !== flight.status) {
+                console.log(`Simulating status change for ${flight.flightNumber}: ${flight.status} -> ${randomStatus}`);
+                updatedFlight.status = randomStatus;
               }
             }
-          }
-          
-          if (flight.id === '5' && Math.random() > 0.8) { // Batik Air - On Time/Delayed/Departed
-            const statuses: Flight['status'][] = ['On Time', 'Delayed', 'Departed'];
-            const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
-            if (randomStatus !== flight.status) {
-              console.log(`Simulating status change for ${flight.flightNumber}: ${flight.status} -> ${randomStatus}`);
-              updatedFlight.status = randomStatus;
+            
+            if (flight.id === '2' && Math.random() > 0.5) { // AirAsia - Delayed/Canceled/On Time
+              const statuses: Flight['status'][] = ['Delayed', 'Canceled', 'On Time'];
+              const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+              if (randomStatus !== flight.status) {
+                console.log(`Simulating status change for ${flight.flightNumber}: ${flight.status} -> ${randomStatus}`);
+                updatedFlight.status = randomStatus;
+              }
             }
-          }
-          
-          // Check if status changed and add notification
-          if (flight.status !== updatedFlight.status) {
-            let notificationBody = `Status changed from ${flight.status} to ${updatedFlight.status}.`;
-            // Special gate logic for Dubai flight notification body
-            if (updatedFlight.id === '4' && updatedFlight.status === 'Gate Changed') {
-              notificationBody += ` Gate: A2`;
+            
+            if (flight.id === '3' && Math.random() > 0.6) { // Singapore Airlines - On Time/Delayed/Departed
+              const statuses: Flight['status'][] = ['On Time', 'Delayed', 'Departed'];
+              const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+              if (randomStatus !== flight.status) {
+                console.log(`Simulating status change for ${flight.flightNumber}: ${flight.status} -> ${randomStatus}`);
+                updatedFlight.status = randomStatus;
+              }
             }
+            
+            if (flight.id === '4' && Math.random() > 0.6) { // Emirates - Landed/Gate Changed
+              const statuses: Flight['status'][] = ['Landed', 'Gate Changed'];
+              const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+              if (randomStatus !== flight.status) {
+                console.log(`Simulating status change for ${flight.flightNumber}: ${flight.status} -> ${randomStatus}`);
+                updatedFlight.status = randomStatus;
+                // When changing to Gate Changed, also simulate a gate update
+                if (randomStatus === 'Gate Changed') {
+                  updatedFlight.destination = { ...updatedFlight.destination, gate: 'A2' };
+                }
+              }
+            }
+            
+            if (flight.id === '5' && Math.random() > 0.8) { // Batik Air - On Time/Delayed/Departed
+              const statuses: Flight['status'][] = ['On Time', 'Delayed', 'Departed'];
+              const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+              if (randomStatus !== flight.status) {
+                console.log(`Simulating status change for ${flight.flightNumber}: ${flight.status} -> ${randomStatus}`);
+                updatedFlight.status = randomStatus;
+              }
+            }
+            
+            // Check if status changed and add notification
+            if (flight.status !== updatedFlight.status) {
+              let notificationBody = `Status changed from ${flight.status} to ${updatedFlight.status}.`;
+              // Special gate logic for Dubai flight notification body
+              if (updatedFlight.id === '4' && updatedFlight.status === 'Gate Changed') {
+                notificationBody += ` Gate: A2`;
+              }
 
-            notificationsToAdd.push({
-              title: `Flight ${updatedFlight.airline} ${updatedFlight.flightNumber} Status Change`,
-              body: notificationBody,
+              notificationsToAdd.push({
+                title: `Flight ${updatedFlight.airline} ${updatedFlight.flightNumber} Status Change`,
+                body: notificationBody,
+              });
+            }
+            
+            return updatedFlight;
+          });
+
+          // Only send one notification per interval to avoid multiple banners
+          if (notificationsToAdd.length > 0) {
+            // Priority order: Canceled > Gate Changed > Delayed > Departed > On Time
+            const priorityOrder = ['Canceled', 'Gate Changed', 'Delayed', 'Departed', 'On Time'];
+            const sortedNotifications = notificationsToAdd.sort((a, b) => {
+              const aStatus = a.body.split(' to ')[1]?.split('.')[0] || '';
+              const bStatus = b.body.split(' to ')[1]?.split('.')[0] || '';
+              const aPriority = priorityOrder.indexOf(aStatus);
+              const bPriority = priorityOrder.indexOf(bStatus);
+              return (aPriority === -1 ? 999 : aPriority) - (bPriority === -1 ? 999 : bPriority);
             });
+            
+            // Only add the highest priority notification to the queue
+            setNotificationQueue(prevQueue => [...prevQueue, sortedNotifications[0]]);
           }
-          
-          return updatedFlight;
+
+          return updatedFlights;
         });
 
-        // Add detected notifications to the queue state
-        if (notificationsToAdd.length > 0) {
-           setNotificationQueue(prevQueue => [...prevQueue, ...notificationsToAdd]);
-        }
+      }, 7000); // Check for updates every 7 seconds
 
-        return updatedFlights;
-      });
-
-    }, 7000); // Check for updates every 7 seconds
-
-    return () => {
-      clearInterval(updateInterval);
-      if (notificationDelayTimer.current) {
-        clearTimeout(notificationDelayTimer.current);
-      }
-    }; // Clear interval and timer on component unmount
-
-  }, []);
+      simulationIntervalRef.current = updateInterval;
+    }
+  };
 
   // --- Effect to process notification queue sequentially ---
   useEffect(() => {
@@ -460,7 +488,9 @@ export default function FlightScreen() {
                   searchQuery={searchQuery} 
                   setSearchQuery={setSearchQuery} 
                   onLayout={handleHeaderLayout} 
-                  currentPanelState={panelState} 
+                  currentPanelState={panelState}
+                  isSimulationActive={isSimulationActive}
+                  onToggleSimulation={toggleSimulation}
                 />
               </View>
             </TapGestureHandler>

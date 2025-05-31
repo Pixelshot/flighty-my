@@ -9,10 +9,11 @@ type ListHeaderProps = {
   setSearchQuery: (query: string) => void;
   onLayout?: (event: LayoutChangeEvent) => void;
   currentPanelState: 'top' | 'default' | 'lower';
-  onToggleDubaiStatus?: () => void;
+  isSimulationActive?: boolean;
+  onToggleSimulation?: () => void;
 };
 
-const ListHeader: React.FC<ListHeaderProps> = ({ searchQuery, setSearchQuery, onLayout, currentPanelState, onToggleDubaiStatus }) => {
+const ListHeader: React.FC<ListHeaderProps> = ({ searchQuery, setSearchQuery, onLayout, currentPanelState, isSimulationActive, onToggleSimulation }) => {
   const { theme, toggleTheme } = useTheme();
 
   // Shared value for the indicator's horizontal position
@@ -100,10 +101,14 @@ const ListHeader: React.FC<ListHeaderProps> = ({ searchQuery, setSearchQuery, on
         <View className="flex-row items-center">
           <Text className="text-3xl font-bold text-gray-800 dark:text-white">My Flights</Text>
           <Ionicons name="chevron-down" size={20} color={theme === 'dark' ? "white" : "#4B5563"} style={{ marginLeft: 5, marginTop: 5 }} />
-          {/* Manual Dubai Status Toggle Button */}
-          {onToggleDubaiStatus && (
-            <TouchableOpacity onPress={onToggleDubaiStatus} className="ml-3 mt-1">
-              <MaterialCommunityIcons name="airplane-alert" size={24} color={theme === 'dark' ? "white" : "#4B5563"} />
+          {/* Manual Simulation Toggle Button */}
+          {onToggleSimulation && (
+            <TouchableOpacity onPress={onToggleSimulation} className="ml-3 mt-1">
+              <MaterialCommunityIcons 
+                name={isSimulationActive ? "airplane-alert" : "airplane-check"} 
+                size={24} 
+                color={isSimulationActive ? "#EF4444" : "#10B981"} // Red when active, green when inactive
+              />
             </TouchableOpacity>
           )}
         </View>
