@@ -34,7 +34,7 @@ function getAirlineLogo(airlineName: string) {
 const FlightItem: React.FC<FlightItemProps> = ({ item, onPress, onShare }) => {
   const statusColors: { [key: string]: string } = {
     "On Time": "text-green-600",
-    "Delayed": "text-pink-500 dark:text-pink-400",
+    "Delayed": "text-red-600 dark:text-red-400",
     "Landed": "text-yellow-500",
     "Departed": "text-blue-600 dark:text-blue-400",
     "Departs On Time": "text-green-600",
@@ -126,9 +126,17 @@ const FlightItem: React.FC<FlightItemProps> = ({ item, onPress, onShare }) => {
                   {/* Baggage Gate */}
                   <View className="flex-row items-center bg-yellow-400 text-black p-2 rounded-md">
                     <MaterialCommunityIcons name="bag-checked" size={16} color="black" />
-                    <Text className="text-black ml-1 text-xs">
-                      {`Gate: ${item.status === 'Gate Changed' ? 'A4 -> A2' : 'A4'}`}
-                    </Text>
+                    <View className="flex-row items-center ml-1">
+                      <Text className="text-black text-xs">Gate: </Text>
+                      {item.status === 'Gate Changed' ? (
+                        <View className="flex-row items-center">
+                          <Text className="text-black text-xs line-through">A4</Text>
+                          <Text className="text-black text-xs"> → A2</Text>
+                        </View>
+                      ) : (
+                        <Text className="text-black text-xs">A4</Text>
+                      )}
+                    </View>
                   </View>
                   {/* Spacer between gate and terminal */}
                   <View className="mx-2" />

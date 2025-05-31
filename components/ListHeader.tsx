@@ -1,6 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
-import { LayoutChangeEvent, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, LayoutChangeEvent, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useTheme } from '../context/ThemeContext';
 
@@ -123,7 +123,17 @@ const ListHeader: React.FC<ListHeaderProps> = ({ searchQuery, setSearchQuery, on
             style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
           />
           {/* <Ionicons name="share-social-outline" size={24} color={theme === 'dark' ? "white" : "#4B5563"} /> */}
-          <MaterialCommunityIcons name="account-circle-outline" size={28} color={theme === 'dark' ? "white" : "#4B5563"} />
+          <Image 
+            source={require('../assets/images/profile-anduin.png')} 
+            style={{ 
+              width: 28, 
+              height: 28, 
+              borderRadius: 14, // Half of width/height to make it circular
+              borderWidth: 1,
+              borderColor: theme === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.1)'
+            }}
+            resizeMode="cover" // Ensures the image covers the entire circular area
+          />
         </View>
       </View>
 
